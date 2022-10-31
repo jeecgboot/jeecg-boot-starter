@@ -1,0 +1,181 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.6.6</version>
+        <relativePath/>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.jeecgframework.boot</groupId>
+    <artifactId>jeecg-boot-starter</artifactId>
+    <packaging>pom</packaging>
+    <name>JEECG BOOT STARTER ${project.version}</name>
+    <version>3.4.3</version>
+
+    <properties>
+        <jeecgboot.version>${project.version}</jeecgboot.version>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <hutool.version>5.3.8</hutool.version>
+        <commons-beanutils.version>1.9.4</commons-beanutils.version>
+        <guava.version>29.0-jre</guava.version>
+
+        <!-- 分布式锁、xxljob、分库分表 -->
+        <redisson.version>3.16.1</redisson.version>
+        <xxl-job-core.version>2.2.0</xxl-job-core.version>
+        <dynamic-datasource-spring-boot-starter.version>3.2.0</dynamic-datasource-spring-boot-starter.version>
+
+        <!-- SpringCloud -->
+        <spring-cloud.version>2021.0.3</spring-cloud.version>
+        <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
+    </properties>
+
+    <modules>
+        <module>jeecg-boot-common</module>
+        <module>jeecg-boot-starter-job</module>
+        <module>jeecg-boot-starter-lock</module>
+        <module>jeecg-boot-starter-rabbitmq</module>
+        <module>jeecg-boot-starter-shardingsphere</module>
+        <module>jeecg-boot-starter-mongon</module>
+
+        <!-- 微服务 start -->
+        <module>jeecg-boot-starter-cloud</module>
+        <module>jeecg-boot-starter-seata</module>
+        <!-- 微服务 end -->
+    </modules>
+    <dependencies>
+        <!--加载配置信息-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 单元测试 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- jeecg-boot-common【原名：jeecg-boot-base-tools】-->
+            <dependency>
+                <groupId>org.jeecgframework.boot</groupId>
+                <artifactId>jeecg-boot-common</artifactId>
+                <version>${jeecgboot.version}</version>
+            </dependency>
+            <!-- hutool工具类-->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-core</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-crypto</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            <!-- guava工具类 -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+            <!-- commons-beanutils -->
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${commons-beanutils.version}</version>
+            </dependency>
+
+            <!-- 微服务 start -->
+            <!-- spring-cloud-->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- redisson -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
+            <!--rabbitmq消息队列-->
+            <dependency>
+                <groupId>org.jeecgframework.boot</groupId>
+                <artifactId>jeecg-boot-starter-rabbitmq</artifactId>
+                <version>${jeecgboot.version}</version>
+            </dependency>
+            <!-- 微服务 end -->
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <!-- Source -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <distributionManagement>
+        <repository>
+            <id>jeecg</id>
+            <name>jeecg Repository</name>
+            <url>http://maven.jeecg.com:8090/nexus/content/repositories/jeecg</url>
+        </repository>
+        <snapshotRepository>
+            <id>jeecg-snapshots</id>
+            <name>jeecg Snapshot Repository</name>
+            <url>http://maven.jeecg.com:8090/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+</project>
