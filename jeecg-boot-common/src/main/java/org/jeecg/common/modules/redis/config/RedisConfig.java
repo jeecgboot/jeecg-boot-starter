@@ -106,6 +106,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 		jeecgCache.put(CacheConstant.PLUGIN_MALL_PAGE_LIST, 24*60*60);
 
 		jeecgCache.getCache().forEach((k,v)->{
+			log.info("自定义缓存配置，key:{},value:{}",k,v);
 			customCache.put(k, redisCacheConfiguration.entryTtl(Duration.ZERO.withSeconds(v)).disableCachingNullValues());
 		});
 		//RedisCacheWriter.lockingRedisCacheWriter(factory);
