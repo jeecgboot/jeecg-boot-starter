@@ -13,7 +13,7 @@
     <artifactId>jeecg-boot-starter</artifactId>
     <packaging>pom</packaging>
     <name>JEECG BOOT STARTER ${project.version}</name>
-    <version>3.4.4</version>
+    <version>3.5.0</version>
 
     <properties>
         <jeecgboot.version>${project.version}</jeecgboot.version>
@@ -38,7 +38,7 @@
         <module>jeecg-boot-starter-job</module>
         <module>jeecg-boot-starter-lock</module>
         <module>jeecg-boot-starter-rabbitmq</module>
-        <module>jeecg-boot-starter-shardingsphere</module>
+<!--        <module>jeecg-boot-starter-shardingsphere</module>-->
         <module>jeecg-boot-starter-mongon</module>
 
         <!-- 微服务 start -->
