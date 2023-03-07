@@ -61,7 +61,7 @@ public class FeignConfig {
     public static final String X_ACCESS_TOKEN = "X-Access-Token";
     public static final String X_SIGN = "X-Sign";
     public static final String X_TIMESTAMP = "X-TIMESTAMP";
-    public static final String TENANT_ID = "tenant-id";
+    public static final String TENANT_ID = "X-Tenant-Id";
     /**===============================================================================================*/
 
     /**

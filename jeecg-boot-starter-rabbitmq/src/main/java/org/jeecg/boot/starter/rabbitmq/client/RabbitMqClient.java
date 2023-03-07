@@ -62,17 +62,18 @@ public class RabbitMqClient {
         Map<String, Object> beansWithRqbbitComponentMap = this.applicationContext.getBeansWithAnnotation(RabbitComponent.class);
         Class<? extends Object> clazz = null;
         for (Map.Entry<String, Object> entry : beansWithRqbbitComponentMap.entrySet()) {
-            log.info("初始化队列............");
             //获取到实例对象的class信息
             clazz = entry.getValue().getClass();
             Method[] methods = clazz.getMethods();
             RabbitListener rabbitListener = clazz.getAnnotation(RabbitListener.class);
             if (ObjectUtil.isNotEmpty(rabbitListener)) {
+                log.info("初始化队列....class........rabbitListener=" + rabbitListener);
                 createQueue(rabbitListener);
             }
             for (Method method : methods) {
                 RabbitListener methodRabbitListener = method.getAnnotation(RabbitListener.class);
                 if (ObjectUtil.isNotEmpty(methodRabbitListener)) {
+                    log.info("初始化队列...method.........methodRabbitListener=" + methodRabbitListener);
                     createQueue(methodRabbitListener);
                 }
             }
