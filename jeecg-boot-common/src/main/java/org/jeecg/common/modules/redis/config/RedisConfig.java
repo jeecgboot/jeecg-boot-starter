@@ -13,7 +13,6 @@ import org.jeecg.common.constant.GlobalConstants;
 import org.jeecg.common.modules.redis.po.JeecgCache;
 import org.jeecg.common.modules.redis.receiver.RedisReceiver;
 import org.jeecg.common.modules.redis.writer.JeecgRedisCacheWriter;
-import org.jeecg.common.util.SpringContextHolder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
@@ -52,6 +51,9 @@ public class RedisConfig extends CachingConfigurerSupport {
 
 	@Resource
 	private LettuceConnectionFactory lettuceConnectionFactory;
+	/**扩展缓存声明这个bean 就可以自动注入*/
+	@Resource
+	private JeecgCache jeecgCache;
 
 	/**
 	 * RedisTemplate配置
@@ -97,8 +99,6 @@ public class RedisConfig extends CachingConfigurerSupport {
 		//update-begin-author:taoyan date:20210316 for:注解CacheEvict根据key删除redis支持通配符*
 		RedisCacheWriter writer = new JeecgRedisCacheWriter(factory, Duration.ofMillis(50L));
 		Map<String, RedisCacheConfiguration> customCache = new HashMap<>();
-		/*隐式加载*/
-		JeecgCache jeecgCache = SpringContextHolder.getBean(JeecgCache.class);
 		if (jeecgCache == null) {
 			jeecgCache = new JeecgCache();
 		}
