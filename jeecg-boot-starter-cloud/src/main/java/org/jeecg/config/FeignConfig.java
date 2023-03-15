@@ -79,7 +79,8 @@ public class FeignConfig {
                 // 将token信息放入header中
                 String token = request.getHeader(FeignConfig.X_ACCESS_TOKEN);
                 if(token==null || "".equals(token)){
-                    token = request.getParameter("token");
+                    String requestToken = request.getParameter("token");
+                    token = requestToken == null ? UserTokenContext.getToken() : requestToken;
                 }
                 log.info("Feign Login Request token: {}", token);
                 requestTemplate.header(FeignConfig.X_ACCESS_TOKEN, token);
@@ -88,7 +89,8 @@ public class FeignConfig {
                 // 将tenantId信息放入header中
                 String tenantId = request.getHeader(FeignConfig.TENANT_ID);
                 if(tenantId==null || "".equals(tenantId)){
-                    tenantId = request.getParameter(FeignConfig.TENANT_ID);
+                    String requestTenantId = request.getParameter(FeignTokenConfig.TENANT_ID);
+                    tenantId = requestTenantId == null ? TenantContext.getTenant() : requestTenantId;
                 }
                 log.info("Feign Login Request tenantId: {}", tenantId);
                 requestTemplate.header(FeignConfig.TENANT_ID, tenantId);
