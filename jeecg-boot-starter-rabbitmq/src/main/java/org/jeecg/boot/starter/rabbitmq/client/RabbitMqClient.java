@@ -107,6 +107,30 @@ public class RabbitMqClient {
         }
     }
 
+    /**
+     * 创建自定义队列
+     *
+     * @param queueName 自定义队列名称
+     */
+    public boolean createQueue(String queueName) {
+        DirectExchange directExchange = createExchange(DelayExchangeBuilder.DELAY_EXCHANGE);
+        //创建交换机
+        rabbitAdmin.declareExchange(directExchange);
+        Properties result = rabbitAdmin.getQueueProperties(queueName);
+        if (ObjectUtil.isEmpty(result)) {
+            Queue queue = new Queue(queueName);
+            addQueue(queue);
+            Binding binding = BindingBuilder.bind(queue).to(directExchange).with(queueName);
+            rabbitAdmin.declareBinding(binding);
+            log.info("创建队列:" + queueName);
+            return true;
+        }else{
+            log.info("已有队列:" + queueName);
+            return false;
+        }
+    }
+
+    
 
     private Map sentObj = new HashMap<>();
 
