@@ -7,6 +7,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+/**
+ * 从mongo查询数据，将时间戳转为LocalDateTime类型
+ */
 public class TimeStampToLocalDateTimeConverter implements Converter<Long, LocalDateTime> {
     @Override
     public LocalDateTime convert(Long timestamp) {

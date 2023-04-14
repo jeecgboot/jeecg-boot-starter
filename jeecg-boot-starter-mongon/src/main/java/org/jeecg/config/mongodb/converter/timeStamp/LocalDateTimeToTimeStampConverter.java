@@ -5,6 +5,9 @@ import org.springframework.core.convert.converter.Converter;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+/**
+ *  保存时，将LocalDateTime时间转为时间戳格
+ */
 public class LocalDateTimeToTimeStampConverter implements Converter<LocalDateTime, Long> {
 
     @Override
