@@ -3,7 +3,9 @@ package org.jeecg.config.mongodb;
 import org.jeecg.config.mongodb.converter.BigDecimalToDecimal128Converter;
 import org.jeecg.config.mongodb.converter.Decimal128ToBigDecimalConverter;
 import org.jeecg.config.mongodb.converter.timeStamp.DateToTimeStamp;
+import org.jeecg.config.mongodb.converter.timeStamp.LocalDateTimeToTimeStampConverter;
 import org.jeecg.config.mongodb.converter.timeStamp.TimeStampToDate;
+import org.jeecg.config.mongodb.converter.timeStamp.TimeStampToLocalDateTimeConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -34,6 +36,10 @@ public class MongoConvertConfig {
         //日期方案——时间戳格式互转方案
         converterList.add(new DateToTimeStamp());
         converterList.add(new TimeStampToDate());
+        
+        //日期方案——时间戳格式互转方案
+        converterList.add(new LocalDateTimeToTimeStampConverter());
+        converterList.add(new TimeStampToLocalDateTimeConverter());
 
         return new MongoCustomConversions(converterList);
     }

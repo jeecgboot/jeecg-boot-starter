@@ -61,7 +61,7 @@ public class FeignConfig {
     public static final String X_ACCESS_TOKEN = "X-Access-Token";
     public static final String X_SIGN = "X-Sign";
     public static final String X_TIMESTAMP = "X-TIMESTAMP";
-    public static final String TENANT_ID = "tenant-id";
+    public static final String TENANT_ID = "X-Tenant-Id";
     /**===============================================================================================*/
 
     /**
@@ -80,6 +80,10 @@ public class FeignConfig {
                 String token = request.getHeader(FeignConfig.X_ACCESS_TOKEN);
                 if(token==null || "".equals(token)){
                     token = request.getParameter("token");
+                    //【issues/4683】微服务之间调用免Token方案的问题 
+                    if (StringUtils.isEmpty(token)) {
+                        token = UserTokenContext.getToken();
+                    }
                 }
                 log.info("Feign Login Request token: {}", token);
                 requestTemplate.header(FeignConfig.X_ACCESS_TOKEN, token);

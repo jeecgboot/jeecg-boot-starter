@@ -62,17 +62,18 @@ public class RabbitMqClient {
         Map<String, Object> beansWithRqbbitComponentMap = this.applicationContext.getBeansWithAnnotation(RabbitComponent.class);
         Class<? extends Object> clazz = null;
         for (Map.Entry<String, Object> entry : beansWithRqbbitComponentMap.entrySet()) {
-            log.info("初始化队列............");
             //获取到实例对象的class信息
             clazz = entry.getValue().getClass();
             Method[] methods = clazz.getMethods();
             RabbitListener rabbitListener = clazz.getAnnotation(RabbitListener.class);
             if (ObjectUtil.isNotEmpty(rabbitListener)) {
+                log.info("初始化队列....class........rabbitListener=" + rabbitListener);
                 createQueue(rabbitListener);
             }
             for (Method method : methods) {
                 RabbitListener methodRabbitListener = method.getAnnotation(RabbitListener.class);
                 if (ObjectUtil.isNotEmpty(methodRabbitListener)) {
+                    log.info("初始化队列...method.........methodRabbitListener=" + methodRabbitListener);
                     createQueue(methodRabbitListener);
                 }
             }
@@ -106,6 +107,30 @@ public class RabbitMqClient {
         }
     }
 
+    /**
+     * 创建自定义队列
+     *
+     * @param queueName 自定义队列名称
+     */
+    public boolean createQueue(String queueName) {
+        DirectExchange directExchange = createExchange(DelayExchangeBuilder.DELAY_EXCHANGE);
+        //创建交换机
+        rabbitAdmin.declareExchange(directExchange);
+        Properties result = rabbitAdmin.getQueueProperties(queueName);
+        if (ObjectUtil.isEmpty(result)) {
+            Queue queue = new Queue(queueName);
+            addQueue(queue);
+            Binding binding = BindingBuilder.bind(queue).to(directExchange).with(queueName);
+            rabbitAdmin.declareBinding(binding);
+            log.info("创建队列:" + queueName);
+            return true;
+        }else{
+            log.info("已有队列:" + queueName);
+            return false;
+        }
+    }
+
+    
 
     private Map sentObj = new HashMap<>();
 

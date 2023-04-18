@@ -1,0 +1,4 @@
+---author:scott ---date:2023-03-22  for：[QQYUN-4114]简流数据事务，并行和串行规则实现-------------
+org\jeecg\boot\starter\rabbitmq\client\RabbitMqClient.java
+org\jeecg\boot\starter\rabbitmq\config\RabbitMqConfig.java
+---author:scott ---date:2023-03-22  for：[QQYUN-4114]简流数据事务，并行和串行规则实现-------------
