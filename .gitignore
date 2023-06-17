@@ -9,3 +9,26 @@ rebel.xml
 
 ## front
 **/*.lock
+
+#idea
+.idea/
+target/
+*.iml
+*.ipr
+*.iws
+*.log
+ 
+#eclipse
+.project
+.classpath
+.settings
+.factorypath
+ 
+#gradle
+.gradle
+.gradletasknamecache
+ 
+
+## others
+.svn/
+.rebel-remote.xml.*
