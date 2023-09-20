@@ -70,7 +70,8 @@ public class DataSourceConfiguration {
         dataSource.setPrimary(dynamicDataSourceProperties.getPrimary());
         dataSource.setStrict(dynamicDataSourceProperties.getStrict());
         dataSource.setStrategy(dynamicDataSourceProperties.getStrategy());
-        dataSource.setProvider(dynamicDataSourceProvider);
+        //v3.5.2 稳定版本 (让默认的DynamicDataSourceProvider优先级为0 by@VonXXGhostin#437)
+        //dataSource.setProvider(dynamicDataSourceProvider);
         dataSource.setP6spy(dynamicDataSourceProperties.getP6spy());
         dataSource.setSeata(dynamicDataSourceProperties.getSeata());
         return dataSource;
