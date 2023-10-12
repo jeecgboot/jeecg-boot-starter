@@ -26,7 +26,7 @@
         <!-- 分布式锁、xxljob、分库分表 -->
         <redisson.version>3.16.1</redisson.version>
         <xxl-job-core.version>2.2.0</xxl-job-core.version>
-        <dynamic-datasource-spring-boot-starter.version>3.5.2</dynamic-datasource-spring-boot-starter.version>
+        <dynamic-datasource-spring-boot-starter.version>4.1.3</dynamic-datasource-spring-boot-starter.version>
 
         <!-- SpringCloud -->
         <spring-cloud.version>2021.0.3</spring-cloud.version>

@@ -1,9 +1,10 @@
 package org.jeecg.boot.shardingsphere.config;
 
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
+import com.baomidou.dynamic.datasource.creator.DataSourceProperty;
+import com.baomidou.dynamic.datasource.creator.DefaultDataSourceCreator;
 import com.baomidou.dynamic.datasource.provider.AbstractDataSourceProvider;
 import com.baomidou.dynamic.datasource.provider.DynamicDataSourceProvider;
-import com.baomidou.dynamic.datasource.spring.boot.autoconfigure.DataSourceProperty;
 import com.baomidou.dynamic.datasource.spring.boot.autoconfigure.DynamicDataSourceAutoConfiguration;
 import com.baomidou.dynamic.datasource.spring.boot.autoconfigure.DynamicDataSourceProperties;
 import org.springframework.boot.SpringBootConfiguration;
@@ -37,7 +38,12 @@ public class DataSourceConfiguration {
     @Lazy
     @Resource
     DataSource shardingDataSource;
-
+    
+    @Lazy
+    @Resource
+    DefaultDataSourceCreator dataSourceCreator;
+    
+    
     /**
      * 将shardingDataSource放到了多数据源（dataSourceMap）中
      * 注意有个版本的bug，3.1.1版本 不会进入loadDataSources 方法，这样就一直造成数据源注册失败
@@ -45,7 +51,7 @@ public class DataSourceConfiguration {
     @Bean
     public DynamicDataSourceProvider dynamicDataSourceProvider() {
         Map<String, DataSourceProperty> datasourceMap = dynamicDataSourceProperties.getDatasource();
-        return new AbstractDataSourceProvider() {
+        return new AbstractDataSourceProvider(dataSourceCreator) {
             @Override
             public Map<String, DataSource> loadDataSources() {
                 Map<String, DataSource> dataSourceMap = createDataSourceMap(datasourceMap);
