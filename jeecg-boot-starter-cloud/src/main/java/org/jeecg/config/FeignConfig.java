@@ -12,7 +12,6 @@ import feign.RequestInterceptor;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.form.spring.SpringFormEncoder;
-import io.seata.core.context.RootContext;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.common.config.TenantContext;
 import org.jeecg.common.config.mqtoken.UserTokenContext;
@@ -148,15 +147,6 @@ public class FeignConfig {
                     e.printStackTrace();
                 }
             }
-
-
-            // spring cloud feign + xx相关处理
-            // spring cloud feign + seata
-            String xid = RootContext.getXID();
-            if (StringUtils.isEmpty(xid)) {
-                return;
-            }
-            requestTemplate.header(RootContext.KEY_XID, xid);
             //================================================================================================================
         };
     }

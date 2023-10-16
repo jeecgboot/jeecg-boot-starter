@@ -31,6 +31,9 @@
         <!-- SpringCloud -->
         <spring-cloud.version>2021.0.3</spring-cloud.version>
         <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
+
+        <!-- seata -->
+        <seata.version>1.5.2</seata.version>
     </properties>
 
     <modules>
@@ -123,6 +126,11 @@
                 <version>${spring-cloud-alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.seata</groupId>
+                <artifactId>seata-spring-boot-starter</artifactId>
+                <version>${seata.version}</version>
             </dependency>
             <!-- redisson -->
             <dependency>

@@ -58,12 +58,6 @@
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.seata</groupId>
-            <artifactId>seata-all</artifactId>
-            <version>1.5.2</version>
-            <scope>optional</scope>
-        </dependency>
 
     </dependencies>
 
