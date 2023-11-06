@@ -2,8 +2,8 @@ package org.jeecg.common.config.mqtoken;
 
 import java.io.IOException;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 存放临时令牌Token到线程上下文
