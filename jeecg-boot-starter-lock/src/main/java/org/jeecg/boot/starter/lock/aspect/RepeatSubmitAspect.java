@@ -15,7 +15,7 @@ import org.jeecg.common.exception.JeecgCloudException;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
