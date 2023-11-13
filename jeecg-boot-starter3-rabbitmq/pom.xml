@@ -3,30 +3,24 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>jeecg-boot-starter</artifactId>
+        <artifactId>jeecg-boot-starter3</artifactId>
         <groupId>org.jeecgframework.boot</groupId>
         <version>3.6.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>jeecg-boot-starter-seata</artifactId>
-    <description>分布式事务</description>
+    <artifactId>jeecg-boot-starter3-rabbitmq</artifactId>
+    <description>jeecg-boot-starter-消息队列</description>
     <dependencies>
-        <!-- seata依赖 -->
+        <!--共通依赖-->
         <dependency>
-            <groupId>io.seata</groupId>
-            <artifactId>seata-spring-boot-starter</artifactId>
+            <groupId>org.jeecgframework.boot</groupId>
+            <artifactId>jeecg-boot-common3</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-client</artifactId>
-            <version>1.3.3</version>
-        </dependency>
-
+        <!-- 消息总线 rabbitmq -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-            <optional>true</optional>
+            <artifactId>spring-cloud-starter-bus-amqp</artifactId>
         </dependency>
-
     </dependencies>
+
 </project>
