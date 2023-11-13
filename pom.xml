@@ -34,16 +34,16 @@
     </properties>
 
     <modules>
-        <module>jeecg-boot-common3</module>
-        <module>jeecg-boot-starter3-job</module>
-        <module>jeecg-boot-starter3-lock</module>
-        <module>jeecg-boot-starter3-rabbitmq</module>
-        <module>jeecg-boot-starter3-shardingsphere</module>
-        <module>jeecg-boot-starter3-mongon</module>
+        <module>jeecg-boot-common</module>
+        <module>jeecg-boot-starter-job</module>
+        <module>jeecg-boot-starter-lock</module>
+        <module>jeecg-boot-starter-rabbitmq</module>
+        <module>jeecg-boot-starter-shardingsphere</module>
+        <module>jeecg-boot-starter-mongon</module>
 
         <!-- 微服务 start -->
-        <module>jeecg-boot-starter3-cloud</module>
-        <module>jeecg-boot-starter3-seata</module>
+        <module>jeecg-boot-starter-cloud</module>
+        <module>jeecg-boot-starter-seata</module>
         <!-- 微服务 end -->
     </modules>
     <dependencies>
