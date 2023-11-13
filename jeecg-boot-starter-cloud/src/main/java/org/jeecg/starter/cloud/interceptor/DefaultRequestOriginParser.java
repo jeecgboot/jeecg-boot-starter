@@ -5,7 +5,7 @@ import com.alibaba.csp.sentinel.adapter.spring.webmvc.callback.RequestOriginPars
 import org.jeecg.starter.cloud.util.IpUtils;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 【示例】sentinel ip和参数授权规则拦截器(黑名单白名单)

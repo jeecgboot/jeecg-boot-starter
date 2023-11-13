@@ -6,7 +6,7 @@ import org.jeecg.boot.starter.lock.annotation.LockConstant;
 import org.jeecg.boot.starter.lock.client.RedissonLockClient;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 @Service
 public class LockService {

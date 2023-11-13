@@ -5,7 +5,7 @@ import org.jeecg.common.constant.GlobalConstants;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
 * @Description: redis客户端
