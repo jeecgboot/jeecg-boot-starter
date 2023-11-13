@@ -10,7 +10,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jeecgframework.boot</groupId>
-    <artifactId>jeecg-boot-starter</artifactId>
+    <artifactId>jeecg-boot-starter3</artifactId>
     <packaging>pom</packaging>
     <name>JEECG BOOT STARTER ${project.version}</name>
     <version>3.6.0</version>
@@ -34,16 +34,16 @@
     </properties>
 
     <modules>
-        <module>jeecg-boot-common</module>
-        <module>jeecg-boot-starter-job</module>
-        <module>jeecg-boot-starter-lock</module>
-        <module>jeecg-boot-starter-rabbitmq</module>
-        <module>jeecg-boot-starter-shardingsphere</module>
-        <module>jeecg-boot-starter-mongon</module>
+        <module>jeecg-boot-common3</module>
+        <module>jeecg-boot-starter3-job</module>
+        <module>jeecg-boot-starter3-lock</module>
+        <module>jeecg-boot-starter3-rabbitmq</module>
+        <module>jeecg-boot-starter3-shardingsphere</module>
+        <module>jeecg-boot-starter3-mongon</module>
 
         <!-- 微服务 start -->
-        <module>jeecg-boot-starter-cloud</module>
-        <module>jeecg-boot-starter-seata</module>
+        <module>jeecg-boot-starter3-cloud</module>
+        <module>jeecg-boot-starter3-seata</module>
         <!-- 微服务 end -->
     </modules>
     <dependencies>
@@ -81,7 +81,7 @@
             <!-- jeecg-boot-common【原名：jeecg-boot-base-tools】-->
             <dependency>
                 <groupId>org.jeecgframework.boot</groupId>
-                <artifactId>jeecg-boot-common</artifactId>
+                <artifactId>jeecg-boot-common3</artifactId>
                 <version>${jeecgboot.version}</version>
             </dependency>
             <!-- hutool工具类-->
@@ -133,7 +133,7 @@
             <!--rabbitmq消息队列-->
             <dependency>
                 <groupId>org.jeecgframework.boot</groupId>
-                <artifactId>jeecg-boot-starter-rabbitmq</artifactId>
+                <artifactId>jeecg-boot-starter3-rabbitmq</artifactId>
                 <version>${jeecgboot.version}</version>
             </dependency>
             <!-- 微服务 end -->
@@ -168,8 +168,8 @@
                     <plugin>
                         <artifactId>maven-compiler-plugin</artifactId>
                         <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>
+                            <source>17</source>
+                            <target>17</target>
                             <encoding>UTF-8</encoding>
                         </configuration>
                     </plugin>
@@ -209,8 +209,8 @@
                     <plugin>
                         <artifactId>maven-compiler-plugin</artifactId>
                         <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>
+                            <source>17</source>
+                            <target>17</target>
                             <encoding>UTF-8</encoding>
                         </configuration>
                     </plugin>
