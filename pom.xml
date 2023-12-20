@@ -33,7 +33,7 @@
         <jeecgboot.version>${project.version}</jeecgboot.version>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <hutool.version>5.3.8</hutool.version>
+        <hutool.version>5.8.23</hutool.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <guava.version>29.0-jre</guava.version>
 
