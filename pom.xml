@@ -13,13 +13,27 @@
     <artifactId>jeecg-boot-starter3</artifactId>
     <packaging>pom</packaging>
     <name>JEECG BOOT STARTER ${project.version}</name>
-    <version>3.6.0</version>
+    <version>3.6.1</version>
 
+    <developers>
+        <developer>
+            <name>北京国炬信息技术有限公司</name>
+            <email>jeecgos@163.com</email>
+            <url>http://www.guojusoft.com</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>http://www.jeecg.com</connection>
+        <developerConnection>http://guojusoft.com</developerConnection>
+        <url>http://www.jeecg.com/vip</url>
+    </scm>
+    
     <properties>
         <jeecgboot.version>${project.version}</jeecgboot.version>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <hutool.version>5.3.8</hutool.version>
+        <hutool.version>5.8.23</hutool.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <guava.version>29.0-jre</guava.version>
 
