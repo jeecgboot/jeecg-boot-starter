@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
-import com.alibaba.fastjson.support.springfox.SwaggerJsonSerializer;
 import feign.Feign;
 import feign.Logger;
 import feign.RequestInterceptor;
@@ -207,7 +206,7 @@ public class FeignConfig {
         supportedMediaTypes.add(mediaTypeJson);
         converter.setSupportedMediaTypes(supportedMediaTypes);
         FastJsonConfig config = new FastJsonConfig();
-        config.getSerializeConfig().put(JSON.class, new SwaggerJsonSerializer());
+//        config.getSerializeConfig().put(JSON.class, new SwaggerJsonSerializer());
         config.setSerializerFeatures(SerializerFeature.DisableCircularReferenceDetect);
         converter.setFastJsonConfig(config);
 
