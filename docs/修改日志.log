@@ -2,3 +2,7 @@
 org\jeecg\boot\starter\rabbitmq\client\RabbitMqClient.java
 org\jeecg\boot\starter\rabbitmq\config\RabbitMqConfig.java
 ---author:scott ---date:2023-03-22  for：[QQYUN-4114]简流数据事务，并行和串行规则实现-------------
+
+---author:chenrui---date:2024/1/11-----for:[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错---
+jeecg-boot-starter-rabbitmq/src/main/java/org/jeecg/boot/starter/rabbitmq/config/RabbitMqConfig.java
+---author:chenrui---date:2024/1/11-----for:[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错---
