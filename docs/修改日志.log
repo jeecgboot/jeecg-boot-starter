@@ -7,3 +7,8 @@ org\jeecg\boot\starter\rabbitmq\config\RabbitMqConfig.java
 jeecg-boot-starter-aichat/** (+)
 pom.xml
 ---author:chenrui---date:2024/1/12-----for:QQYUN-5929chatgpt stater #5 PR代码验收集成测试---
+
+---author:chenrui---date:2024/1/15-----for:QQYUN-5929 修改模块名称为:chatgpt---
+jeecg-boot-starter-chatgpt/** (+)
+pom.xml
+---author:chenrui---date:2024/1/15-----for:QQYUN-5929 修改模块名称为:chatgpt---

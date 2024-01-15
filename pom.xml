@@ -60,7 +60,7 @@
         <module>jeecg-boot-starter-rabbitmq</module>
         <module>jeecg-boot-starter-shardingsphere</module>
         <module>jeecg-boot-starter-mongon</module>
-        <module>jeecg-boot-starter-aichat</module>
+        <module>jeecg-boot-starter-chatgpt</module>
         <!-- 微服务 start -->
         <module>jeecg-boot-starter-cloud</module>
         <module>jeecg-boot-starter-seata</module>
@@ -143,7 +143,7 @@
             <!-- jeecg-boot-aiChat starter-->
             <dependency>
                 <groupId>org.jeecgframework.boot</groupId>
-                <artifactId>jeecg-boot-starter-aichat</artifactId>
+                <artifactId>jeecg-boot-starter-chatgpt</artifactId>
                 <version>${jeecgboot.version}</version>
             </dependency>
             <!-- update-end-author:chenrui -date:20240110  for：[QQYUN-5509]AI生成表结构和软文- -->
