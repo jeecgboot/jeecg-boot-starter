@@ -2,3 +2,8 @@
 org\jeecg\boot\starter\rabbitmq\client\RabbitMqClient.java
 org\jeecg\boot\starter\rabbitmq\config\RabbitMqConfig.java
 ---author:scott ---date:2023-03-22  for：[QQYUN-4114]简流数据事务，并行和串行规则实现-------------
+
+---author:chenrui---date:2024/1/12-----for:QQYUN-5929chatgpt stater #5 PR代码验收集成测试---
+jeecg-boot-starter-aichat/** (+)
+pom.xml
+---author:chenrui---date:2024/1/12-----for:QQYUN-5929chatgpt stater #5 PR代码验收集成测试---
