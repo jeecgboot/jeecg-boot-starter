@@ -12,3 +12,7 @@ pom.xml
 jeecg-boot-starter-chatgpt/** (+)
 pom.xml
 ---author:chenrui---date:2024/1/15-----for:QQYUN-5929 修改模块名称为:chatgpt---
+
+---author:chenrui---date:2024/1/26-----for:新增openAiStreamClient Bean---
+src/main/java/org/jeecg/chatgpt/config/AiChatAutoConfiguration.java
+---author:chenrui---date:2024/1/26-----for:新增openAiStreamClient Bean---

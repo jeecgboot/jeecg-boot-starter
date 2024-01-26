@@ -1,6 +1,7 @@
 package org.jeecg.chatgpt.config;
 
 import com.unfbx.chatgpt.OpenAiClient;
+import com.unfbx.chatgpt.OpenAiStreamClient;
 import com.unfbx.chatgpt.function.KeyRandomStrategy;
 import com.unfbx.chatgpt.interceptor.OpenAILogger;
 import com.unfbx.chatgpt.interceptor.OpenAiResponseInterceptor;
@@ -33,6 +34,8 @@ import java.util.concurrent.TimeUnit;
 @EnableConfigurationProperties(AiChatProperties.class)
 public class AiChatAutoConfiguration {
 
+    //update-begin---author:chenrui ---date:20240126  for：新增streamClientBean------------
+
     /**
      * openAI客户端
      *
@@ -44,6 +47,50 @@ public class AiChatAutoConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = AiChatProperties.PREFIX, name = "enabled", havingValue = "true")
     public OpenAiClient openAiClient(AiChatProperties aiChatProperties) {
+        OkHttpClient okHttpClient = buildHttpClient(aiChatProperties);
+        // 构造openAiClient
+        return OpenAiClient.builder()
+                //支持多key传入，请求时候随机选择
+                .apiKey(Collections.singletonList(aiChatProperties.getApiKey()))
+                //自定义key的获取策略(实现KeyStrategyFunction)：默认KeyRandomStrategy
+                .keyStrategy(new KeyRandomStrategy())
+                .okHttpClient(okHttpClient)
+                //自己做了代理就传代理地址，没有可不不传
+                .apiHost(aiChatProperties.getApiHost())
+                .build();
+    }
+
+
+    /**
+     * openAIStream客户端
+     *
+     * @param aiChatProperties
+     * @return
+     * @author chenrui
+     * @date 2024/1/25 10:50
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = AiChatProperties.PREFIX, name = "enabled", havingValue = "true")
+    public OpenAiStreamClient openAiStreamClient(AiChatProperties aiChatProperties) {
+        OkHttpClient okHttpClient = buildHttpClient(aiChatProperties);
+        return OpenAiStreamClient.builder()
+                .apiKey(Collections.singletonList(aiChatProperties.getApiKey()))
+                //自定义key的获取策略：默认KeyRandomStrategy
+                .keyStrategy(new KeyRandomStrategy())
+                .okHttpClient(okHttpClient)
+                .apiHost(aiChatProperties.getApiHost())
+                .build();
+    }
+
+    /**
+     * 构建http客户端
+     *
+     * @param aiChatProperties
+     * @return
+     * @author chenrui
+     * @date 2024/1/25 10:49
+     */
+    private static OkHttpClient buildHttpClient(AiChatProperties aiChatProperties) {
         //网络代理
         AiChatProperties.Proxy proxyProp = aiChatProperties.getProxy();
         Proxy proxy = null;
@@ -63,17 +110,10 @@ public class AiChatAutoConfiguration {
                 .writeTimeout(aiChatProperties.getTimeout(), TimeUnit.SECONDS)
                 .readTimeout(aiChatProperties.getTimeout(), TimeUnit.SECONDS)
                 .build();
-        // 构造openAiClient
-        return OpenAiClient.builder()
-                //支持多key传入，请求时候随机选择
-                .apiKey(Collections.singletonList(aiChatProperties.getApiKey()))
-                //自定义key的获取策略(实现KeyStrategyFunction)：默认KeyRandomStrategy
-                .keyStrategy(new KeyRandomStrategy())
-                .okHttpClient(okHttpClient)
-                //自己做了代理就传代理地址，没有可不不传
-                .apiHost(aiChatProperties.getApiHost())
-                .build();
+        return okHttpClient;
     }
+
+    //update-end---author:chenrui ---date:20240126  for：新增streamClientBean------------
 
     /**
      * ChatGpt聊天Service
