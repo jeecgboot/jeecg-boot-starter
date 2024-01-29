@@ -48,6 +48,12 @@ public class AiChatAutoConfiguration {
     @ConditionalOnProperty(prefix = AiChatProperties.PREFIX, name = "enabled", havingValue = "true")
     public OpenAiClient openAiClient(AiChatProperties aiChatProperties) {
         OkHttpClient okHttpClient = buildHttpClient(aiChatProperties);
+        //update-begin---author:chenrui ---date:20240129  for：给域名加上/结尾,防止调用时地址拼接错误------------
+        String apiHost = aiChatProperties.getApiHost();
+        if(!apiHost.isEmpty() && !apiHost.endsWith("/")){
+            apiHost +="/";
+        }
+        //update-end---author:chenrui ---date:20240129  for：给域名加上/结尾,防止调用时地址拼接错误------------
         // 构造openAiClient
         return OpenAiClient.builder()
                 //支持多key传入，请求时候随机选择
@@ -56,7 +62,7 @@ public class AiChatAutoConfiguration {
                 .keyStrategy(new KeyRandomStrategy())
                 .okHttpClient(okHttpClient)
                 //自己做了代理就传代理地址，没有可不不传
-                .apiHost(aiChatProperties.getApiHost())
+                .apiHost(apiHost)
                 .build();
     }
 
@@ -73,12 +79,18 @@ public class AiChatAutoConfiguration {
     @ConditionalOnProperty(prefix = AiChatProperties.PREFIX, name = "enabled", havingValue = "true")
     public OpenAiStreamClient openAiStreamClient(AiChatProperties aiChatProperties) {
         OkHttpClient okHttpClient = buildHttpClient(aiChatProperties);
+        //update-end---author:chenrui ---date:20240129  for：给域名加上/结尾,防止调用时地址拼接错误------------
+        String apiHost = aiChatProperties.getApiHost();
+        if(!apiHost.isEmpty() && !apiHost.endsWith("/")){
+            apiHost +="/";
+        }
+        //update-end---author:chenrui ---date:20240129  for：给域名加上/结尾,防止调用时地址拼接错误------------
         return OpenAiStreamClient.builder()
                 .apiKey(Collections.singletonList(aiChatProperties.getApiKey()))
                 //自定义key的获取策略：默认KeyRandomStrategy
                 .keyStrategy(new KeyRandomStrategy())
                 .okHttpClient(okHttpClient)
-                .apiHost(aiChatProperties.getApiHost())
+                .apiHost(apiHost)
                 .build();
     }
 
