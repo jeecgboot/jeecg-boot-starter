@@ -10,13 +10,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.jeecg.common.constant.CacheConstant;
 import org.jeecg.common.constant.GlobalConstants;
 
+import org.jeecg.common.modules.redis.po.JeecgCache;
 import org.jeecg.common.modules.redis.receiver.RedisReceiver;
 import org.jeecg.common.modules.redis.writer.JeecgRedisCacheWriter;
+import org.jeecg.common.util.SpringContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
@@ -30,6 +40,8 @@ import org.springframework.data.redis.serializer.*;
 
 import javax.annotation.Resource;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.util.Collections.singletonMap;
 
@@ -45,6 +57,10 @@ public class RedisConfig extends CachingConfigurerSupport {
 
 	@Resource
 	private LettuceConnectionFactory lettuceConnectionFactory;
+	/**扩展缓存声明这个bean 就可以自动注入*/
+	@Autowired(required = false)
+	private JeecgCache jeecgCache;
+
 
 	/**
 	 * RedisTemplate配置
@@ -78,6 +94,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 	 * @return
 	 */
 	@Bean
+
 	public CacheManager cacheManager(LettuceConnectionFactory factory) {
         Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = jacksonSerializer();
         // 配置序列化（解决乱码的问题）,并且配置缓存默认有效期 6小时
@@ -89,6 +106,18 @@ public class RedisConfig extends CachingConfigurerSupport {
 		// 以锁写入的方式创建RedisCacheWriter对象
 		//update-begin-author:taoyan date:20210316 for:注解CacheEvict根据key删除redis支持通配符*
 		RedisCacheWriter writer = new JeecgRedisCacheWriter(factory, Duration.ofMillis(50L));
+		Map<String, RedisCacheConfiguration> customCache = new HashMap<>();
+		if (jeecgCache == null) {
+			jeecgCache = new JeecgCache();
+		}
+		jeecgCache.put(CacheConstant.TEST_DEMO_CACHE, 60*5);
+		jeecgCache.put(CacheConstant.PLUGIN_MALL_RANKING, 24*60*60);
+		jeecgCache.put(CacheConstant.PLUGIN_MALL_PAGE_LIST, 24*60*60);
+
+		jeecgCache.getCache().forEach((k,v)->{
+			log.info("自定义缓存配置，key:{},value:{}",k,v);
+			customCache.put(k, redisCacheConfiguration.entryTtl(Duration.ZERO.withSeconds(v)).disableCachingNullValues());
+		});
 		//RedisCacheWriter.lockingRedisCacheWriter(factory);
 		// 创建默认缓存配置对象
 		/* 默认配置，设置缓存有效期 1小时*/
@@ -97,10 +126,8 @@ public class RedisConfig extends CachingConfigurerSupport {
 		RedisCacheManager cacheManager = RedisCacheManager.builder(writer).cacheDefaults(redisCacheConfiguration)
             .withInitialCacheConfigurations(singletonMap(CacheConstant.SYS_DICT_TABLE_CACHE,
                 RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10)).disableCachingNullValues()
-                    .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))))
-				.withInitialCacheConfigurations(singletonMap(CacheConstant.TEST_DEMO_CACHE, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues()))
-				.withInitialCacheConfigurations(singletonMap(CacheConstant.PLUGIN_MALL_RANKING, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues()))
-				.withInitialCacheConfigurations(singletonMap(CacheConstant.PLUGIN_MALL_PAGE_LIST, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))))
+				.withInitialCacheConfigurations(customCache)
 				.transactionAware().build();
 		//update-end-author:taoyan date:20210316 for:注解CacheEvict根据key删除redis支持通配符*
 		return cacheManager;
