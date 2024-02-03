@@ -24,3 +24,7 @@ jeecg-boot-starter-chatgpt/pom.xml
 ---author:chenrui---date:2024/1/29-----for:给配置域名加上/结尾,防止调用时地址拼接错误---
 jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/chatgpt/config/AiChatAutoConfiguration.java
 ---author:chenrui---date:2024/1/29-----for:给配置域名加上/结尾,防止调用时地址拼接错误---
+
+---author:chenrui---date:2024/02/02-----for:[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错---
+jeecg-boot-starter-rabbitmq/src/main/java/org/jeecg/boot/starter/rabbitmq/config/RabbitMqConfig.java
+---author:chenrui---date:2024/02/02-----for:[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错---

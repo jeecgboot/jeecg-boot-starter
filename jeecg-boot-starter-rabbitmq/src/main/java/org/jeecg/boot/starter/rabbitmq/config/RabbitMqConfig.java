@@ -14,6 +14,8 @@ import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistrar;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.RabbitListenerErrorHandler;
 import org.springframework.amqp.support.ConsumerTagStrategy;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.cloud.bus.jackson.RemoteApplicationEventScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -97,6 +99,9 @@ public class RabbitMqConfig implements RabbitListenerConfigurer {
         factory.setMaxConcurrentConsumers(1);
         factory.setAcknowledgeMode(AcknowledgeMode.AUTO);
         factory.setPrefetchCount(1);
+        //update-begin---author:chenrui ---date:20240202  for：[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错------------
+        factory.setMessageConverter(messageConverter());
+        //update-end---author:chenrui ---date:20240202  for：[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错------------
         return factory;
     }
     
@@ -111,4 +116,11 @@ public class RabbitMqConfig implements RabbitListenerConfigurer {
     }
     //update-end---author:scott ---date::2023-03-22  for：[QQYUN-4114]简流数据事务，并行和串行规则实现--------------
     //-----------------------------------------------------------------------------
+
+    //update-begin---author:chenrui ---date:20240202  for：[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错------------
+    @Bean
+    public MessageConverter messageConverter(){
+        return new Jackson2JsonMessageConverter();
+    }
+    //update-end---author:chenrui ---date:20240202  for：[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错------------
 }
