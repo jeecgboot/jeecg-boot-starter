@@ -157,7 +157,11 @@ public class HttpUtils {
         String[] params = param.split("&");
         for (String s : params) {
             int index = s.indexOf("=");
-            result.put(s.substring(0, index), s.substring(index + 1));
+            //update-begin---author:chenrui ---date:20240222  for：[issues/5879]数据查询传ds=“”造成的异常------------
+            if (index != -1) {
+                result.put(s.substring(0, index), s.substring(index + 1));
+            }
+            //update-end---author:chenrui ---date:20240222  for：[issues/5879]数据查询传ds=“”造成的异常------------
         }
         return result;
     }
@@ -181,7 +185,11 @@ public class HttpUtils {
         String[] params = param.split("&");
         for (String s : params) {
             int index = s.indexOf("=");
-            result.put(s.substring(0, index), s.substring(index + 1));
+            //update-begin---author:chenrui ---date:20240222  for：[issues/5879]数据查询传ds=“”造成的异常------------
+            if (index != -1) {
+                result.put(s.substring(0, index), s.substring(index + 1));
+            }
+            //update-end---author:chenrui ---date:20240222  for：[issues/5879]数据查询传ds=“”造成的异常------------
         }
         return result;
     }

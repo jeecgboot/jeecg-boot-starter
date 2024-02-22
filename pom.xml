@@ -36,6 +36,9 @@
         <hutool.version>5.8.23</hutool.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <guava.version>29.0-jre</guava.version>
+        <!-- chatGpt -->
+        <chat-gpt-java.varsion>1.1.5</chat-gpt-java.varsion>
+        <commons.version>2.6</commons.version>
 
         <!-- 分布式锁、xxljob、分库分表 -->
         <redisson.version>3.16.1</redisson.version>
@@ -54,7 +57,7 @@
         <module>jeecg-boot-starter-rabbitmq</module>
         <module>jeecg-boot-starter-shardingsphere</module>
         <module>jeecg-boot-starter-mongon</module>
-
+        <module>jeecg-boot-starter-chatgpt</module>
         <!-- 微服务 start -->
         <module>jeecg-boot-starter-cloud</module>
         <module>jeecg-boot-starter-seata</module>
@@ -121,7 +124,26 @@
                 <artifactId>commons-beanutils</artifactId>
                 <version>${commons-beanutils.version}</version>
             </dependency>
-
+            <!-- update-begin-author:chenrui -date:20240110  for：[QQYUN-5509]AI生成表结构和软文- -->
+            <!-- commons-lang -->
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${commons.version}</version>
+            </dependency>
+            <!-- chatGpt-java -->
+            <dependency>
+                <groupId>com.unfbx</groupId>
+                <artifactId>chatgpt-java</artifactId>
+                <version>${chat-gpt-java.varsion}</version>
+            </dependency>
+            <!-- jeecg-boot-aiChat starter-->
+            <dependency>
+                <groupId>org.jeecgframework.boot</groupId>
+                <artifactId>jeecg-boot-starter-chatgpt</artifactId>
+                <version>${jeecgboot.version}</version>
+            </dependency>
+            <!-- update-end-author:chenrui -date:20240110  for：[QQYUN-5509]AI生成表结构和软文- -->
             <!-- 微服务 start -->
             <!-- spring-cloud-->
             <dependency>

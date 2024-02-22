@@ -3,6 +3,32 @@ org\jeecg\boot\starter\rabbitmq\client\RabbitMqClient.java
 org\jeecg\boot\starter\rabbitmq\config\RabbitMqConfig.java
 ---author:scott ---date:2023-03-22  for：[QQYUN-4114]简流数据事务，并行和串行规则实现-------------
 
----author:chenrui---date:2024/1/11-----for:[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错---
+---author:chenrui---date:2024/1/12-----for:QQYUN-5929chatgpt stater #5 PR代码验收集成测试---
+jeecg-boot-starter-aichat/** (+)
+pom.xml
+---author:chenrui---date:2024/1/12-----for:QQYUN-5929chatgpt stater #5 PR代码验收集成测试---
+
+---author:chenrui---date:2024/1/15-----for:QQYUN-5929 修改模块名称为:chatgpt---
+jeecg-boot-starter-chatgpt/** (+)
+pom.xml
+---author:chenrui---date:2024/1/15-----for:QQYUN-5929 修改模块名称为:chatgpt---
+
+---author:chenrui---date:2024/1/26-----for:新增openAiStreamClient Bean---
+src/main/java/org/jeecg/chatgpt/config/AiChatAutoConfiguration.java
+---author:chenrui---date:2024/1/26-----for:新增openAiStreamClient Bean---
+
+---author:chenrui---date:2024/1/29-----for:移除不必要的依赖---
+jeecg-boot-starter-chatgpt/pom.xml
+---author:chenrui---date:2024/1/29-----for:移除不必要的依赖---
+
+---author:chenrui---date:2024/1/29-----for:给配置域名加上/结尾,防止调用时地址拼接错误---
+jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/chatgpt/config/AiChatAutoConfiguration.java
+---author:chenrui---date:2024/1/29-----for:给配置域名加上/结尾,防止调用时地址拼接错误---
+
+---author:chenrui---date:2024/02/02-----for:[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错---
 jeecg-boot-starter-rabbitmq/src/main/java/org/jeecg/boot/starter/rabbitmq/config/RabbitMqConfig.java
----author:chenrui---date:2024/1/11-----for:[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错---
+---author:chenrui---date:2024/02/02-----for:[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错---
+
+---author:chenrui---date:2024/02/22-----for:[issues/5879]数据查询传ds=“”造成的异常---
+jeecg-boot-starter-cloud/src/main/java/org/jeecg/starter/cloud/util/HttpUtils.java
+---author:chenrui---date:2024/02/22-----for:[issues/5879]数据查询传ds=“”造成的异常---
