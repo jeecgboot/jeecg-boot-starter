@@ -28,3 +28,7 @@ jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/chatgpt/config/AiChatAutoConf
 ---author:chenrui---date:2024/02/02-----for:[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错---
 jeecg-boot-starter-rabbitmq/src/main/java/org/jeecg/boot/starter/rabbitmq/config/RabbitMqConfig.java
 ---author:chenrui---date:2024/02/02-----for:[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错---
+
+---author:chenrui---date:2024/02/22-----for:[issues/5879]数据查询传ds=“”造成的异常---
+jeecg-boot-starter-cloud/src/main/java/org/jeecg/starter/cloud/util/HttpUtils.java
+---author:chenrui---date:2024/02/22-----for:[issues/5879]数据查询传ds=“”造成的异常---
