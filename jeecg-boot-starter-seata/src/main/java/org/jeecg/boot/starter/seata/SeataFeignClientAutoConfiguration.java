@@ -6,8 +6,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author eightmonth
- * @date 2023/10/16 17:35
+ * 
+ * @author  eightmonth
+ * @date    2023/10/16 17:35
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(Client.class)

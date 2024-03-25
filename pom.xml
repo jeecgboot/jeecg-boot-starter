@@ -13,7 +13,7 @@
     <artifactId>jeecg-boot-starter3</artifactId>
     <packaging>pom</packaging>
     <name>JEECG BOOT STARTER ${project.version}</name>
-    <version>3.6.2</version>
+    <version>3.6.3</version>
 
     <developers>
         <developer>
@@ -33,7 +33,7 @@
         <jeecgboot.version>${project.version}</jeecgboot.version>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <hutool.version>5.8.23</hutool.version>
+        <hutool.version>5.8.25</hutool.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <guava.version>29.0-jre</guava.version>
         <!-- chatGpt -->
