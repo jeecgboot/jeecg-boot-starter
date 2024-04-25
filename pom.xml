@@ -58,6 +58,7 @@
         <module>jeecg-boot-starter-job</module>
         <module>jeecg-boot-starter-lock</module>
         <module>jeecg-boot-starter-rabbitmq</module>
+        <module>jeecg-boot-starter-rocketmq</module>
         <module>jeecg-boot-starter-shardingsphere</module>
         <module>jeecg-boot-starter-mongon</module>
         <module>jeecg-boot-starter-chatgpt</module>
