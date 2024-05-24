@@ -2,7 +2,7 @@ package org.jeecg.starter.cloud.util;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
-import org.jeecg.common.exception.JeecgBootException;
+import org.jeecg.common.exception.JeecgCloudException;
 import org.jeecg.common.util.SpringContextHolder;
 import org.jeecg.config.JeecgCloudBaseConfig;
 import org.springframework.util.DigestUtils;
@@ -38,7 +38,7 @@ public class SignUtil {
         }
         // 把参数加密
         String paramsSign = getParamsSign(params);
-        log.info("Param Sign : {}", paramsSign);
+        log.info("【微服务】Param Sign : {}", paramsSign);
         return !StringUtils.isEmpty(paramsSign) && headerSign.equals(paramsSign);
     }
 
@@ -57,7 +57,8 @@ public class SignUtil {
         String signatureSecret = jeecgBaseConfig.getSignatureSecret();
         String curlyBracket = SignUtil.DOLLAR + SignUtil.LEFT_CURLY_BRACKET;
         if(StringUtils.isEmpty(signatureSecret) || signatureSecret.contains(curlyBracket)){
-            throw new JeecgBootException("签名密钥 ${jeecg.signatureSecret} 缺少配置 ！！");
+            log.error("【微服务】签名密钥 ${jeecg.signatureSecret} 未配置 ！");
+            throw new JeecgCloudException("签名密钥 ${jeecg.signatureSecret} 未配置 ！");
         }
         return DigestUtils.md5DigestAsHex((paramsJsonStr + signatureSecret).getBytes()).toUpperCase();
     }
