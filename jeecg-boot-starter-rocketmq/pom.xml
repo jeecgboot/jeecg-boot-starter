@@ -4,18 +4,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.jeecgframework.boot</groupId>
-        <artifactId>jeecg-boot-starter</artifactId>
+        <artifactId>jeecg-boot-starter3</artifactId>
         <version>3.7.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>jeecg-boot-starter-rocketmq</artifactId>
+    <artifactId>jeecg-boot-starter3-rocketmq</artifactId>
     <description>jeecg-boot-starter-消息队列</description>
 
     <dependencies>
         <!--共通依赖-->
         <dependency>
             <groupId>org.jeecgframework.boot</groupId>
-            <artifactId>jeecg-boot-common</artifactId>
+            <artifactId>jeecg-boot-common3</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.rocketmq</groupId>
