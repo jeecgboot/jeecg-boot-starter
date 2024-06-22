@@ -32,3 +32,12 @@ jeecg-boot-starter-rabbitmq/src/main/java/org/jeecg/boot/starter/rabbitmq/config
 ---author:chenrui---date:2024/02/22-----for:[issues/5879]数据查询传ds=“”造成的异常---
 jeecg-boot-starter-cloud/src/main/java/org/jeecg/starter/cloud/util/HttpUtils.java
 ---author:chenrui---date:2024/02/22-----for:[issues/5879]数据查询传ds=“”造成的异常---
+
+---author:scott---date:2024-05-24---for:删除自定义异常类JeecgBootException，与平台类名一样出现冲突---
+org\jeecg\starter\cloud\util\SignUtil.java
+org.jeecg.common.exception.JeecgBootException
+---author:scott---date:2024-05-24---for:删除自定义异常类JeecgBootException，与平台类名一样出现冲突---
+
+---author:scott---date:2024-05-24---for:功能稳定后，日志打印降级---
+org\jeecg\config\FeignConfig.java
+---author:scott---date:2024-05-24---for:功能稳定后，日志打印降级---

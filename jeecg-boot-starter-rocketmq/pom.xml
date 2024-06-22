@@ -3,24 +3,31 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>jeecg-boot-starter3</artifactId>
         <groupId>org.jeecgframework.boot</groupId>
+        <artifactId>jeecg-boot-starter</artifactId>
         <version>3.7.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>jeecg-boot-starter3-rabbitmq</artifactId>
+    <artifactId>jeecg-boot-starter-rocketmq</artifactId>
     <description>jeecg-boot-starter-消息队列</description>
+
     <dependencies>
         <!--共通依赖-->
         <dependency>
             <groupId>org.jeecgframework.boot</groupId>
-            <artifactId>jeecg-boot-common3</artifactId>
+            <artifactId>jeecg-boot-common</artifactId>
         </dependency>
-        <!-- 消息总线 rabbitmq -->
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bus-amqp</artifactId>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-spring-boot-starter</artifactId>
+            <version>2.2.2</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-bus-rocketmq</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>
