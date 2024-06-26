@@ -1,7 +1,9 @@
 package org.jeecg.common.modules.redis.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.common.constant.CacheConstant;
@@ -132,6 +134,8 @@ public class RedisConfig extends CachingConfigurerSupport {
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
 		objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+		// 反序列化设置 关闭反序列化时Jackson无法找到对应字段，便会抛出UnrecognizedPropertyException
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
 		return jackson2JsonRedisSerializer;
 	}
