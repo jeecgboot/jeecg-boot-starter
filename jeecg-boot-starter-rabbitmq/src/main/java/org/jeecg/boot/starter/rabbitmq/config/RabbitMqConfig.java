@@ -97,7 +97,8 @@ public class RabbitMqConfig implements RabbitListenerConfigurer {
         factory.setConnectionFactory(connectionFactory);
         factory.setConcurrentConsumers(1);
         factory.setMaxConcurrentConsumers(1);
-        factory.setAcknowledgeMode(AcknowledgeMode.AUTO);
+        //手动确认
+        factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         factory.setPrefetchCount(1);
         //update-begin---author:chenrui ---date:20240202  for：[issue/5778]springAmpq默认mc会验证反序列类可信导致接收消息报错------------
         factory.setMessageConverter(messageConverter());
