@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -240,6 +241,16 @@ public class JeecgRedisCacheWriter implements RedisCacheWriter {
     @Override
     public void clearStatistics(String name) {
 
+    }
+
+    @Override
+    public CompletableFuture<byte[]> retrieve(String name, byte[] key, Duration ttl) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> store(String name, byte[] key, byte[] value, Duration ttl) {
+        return null;
     }
 
     @Override
