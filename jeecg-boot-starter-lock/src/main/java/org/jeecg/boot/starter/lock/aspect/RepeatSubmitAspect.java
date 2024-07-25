@@ -12,7 +12,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.jeecg.boot.starter.lock.annotation.JRepeat;
 import org.jeecg.boot.starter.lock.client.RedissonLockClient;
 import org.jeecg.common.exception.JeecgCloudException;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import org.springframework.core.StandardReflectionParameterNameDiscoverer;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.Resource;
@@ -47,7 +47,7 @@ public class RepeatSubmitAspect extends BaseAspect{
      */
     @Around("pointCut(jRepeat)")
     public Object repeatSubmit(ProceedingJoinPoint joinPoint,JRepeat jRepeat) throws Throwable {
-        String[] parameterNames = new LocalVariableTableParameterNameDiscoverer().getParameterNames(((MethodSignature) joinPoint.getSignature()).getMethod());
+        String[] parameterNames = new StandardReflectionParameterNameDiscoverer().getParameterNames(((MethodSignature) joinPoint.getSignature()).getMethod());
         if (Objects.nonNull(jRepeat)) {
             // 获取参数
             Object[] args = joinPoint.getArgs();
