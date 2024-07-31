@@ -47,7 +47,7 @@
 
         <!-- SpringCloud -->
         <spring-cloud.version>2023.0.3</spring-cloud.version>
-        <spring-cloud-alibaba.version>2022.0.0.0</spring-cloud-alibaba.version>
+        <spring-cloud-alibaba.version>2023.0.1.2</spring-cloud-alibaba.version>
     </properties>
 
     <modules>
@@ -62,7 +62,6 @@
         <!-- 微服务 start -->
         <module>jeecg-boot-starter-cloud</module>
         <module>jeecg-boot-starter-seata</module>
-        <module>jeecg-boot-starter-ai</module>
         <!-- 微服务 end -->
     </modules>
     <dependencies>
