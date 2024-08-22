@@ -170,7 +170,8 @@ public class JeecgRedisCacheWriter implements RedisCacheWriter {
     }
 
     private Boolean doLock(String name, RedisConnection connection) {
-        return connection.setNX(createCacheLockKey(name), new byte[0]);
+        // 3分钟后自动删除分布锁KEY
+        return connection.set(createCacheLockKey(name), new byte[0], Expiration.seconds(180L), SetOption.SET_IF_ABSENT);
     }
 
     private Long doUnlock(String name, RedisConnection connection) {
