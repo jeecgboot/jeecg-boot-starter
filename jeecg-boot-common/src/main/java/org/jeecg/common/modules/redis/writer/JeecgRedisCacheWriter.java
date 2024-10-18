@@ -1,14 +1,5 @@
 package org.jeecg.common.modules.redis.writer;
 
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.redis.cache.CacheStatistics;
@@ -17,9 +8,22 @@ import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
 * 该类参照 DefaultRedisCacheWriter 重写了 remove 方法实现通配符*删除
@@ -115,7 +119,14 @@ public class JeecgRedisCacheWriter implements RedisCacheWriter {
         if(keyString!=null && keyString.endsWith(keyIsAll)){
             execute(name, connection -> {
                 // 获取某个前缀所拥有的所有的键，某个前缀开头，后面肯定是*
-                Set<byte[]> keys = connection.keys(key);
+                // 如果不设置count数，默认会返回10个
+                ScanOptions options = ScanOptions.scanOptions().match(key).count(100000).build();
+                Set<byte[]> keys = new HashSet<>();
+                try (Cursor<byte[]> cursor = connection.scan(options)) {
+                    while (cursor.hasNext()) {
+                        keys.add(cursor.next());
+                    }
+                }
                 int delNum = 0;
                 for (byte[] keyByte : keys) {
                     delNum += connection.del(keyByte);
@@ -141,10 +152,16 @@ public class JeecgRedisCacheWriter implements RedisCacheWriter {
                     this.doLock(name, connection);
                     wasLocked = true;
                 }
-
-                byte[][] keys = (byte[][])((Set)Optional.ofNullable(connection.keys(pattern)).orElse(Collections.emptySet())).toArray(new byte[0][]);
-                if (keys.length > 0) {
-                    connection.del(keys);
+                // 如果不设置count数，默认会返回10个
+                ScanOptions options = ScanOptions.scanOptions().match(pattern).count(1000).build();
+                Set<byte[]> keys = new HashSet<>();
+                try (Cursor<byte[]> cursor = connection.scan(options)) {
+                    while (cursor.hasNext()) {
+                        keys.add(cursor.next());
+                    }
+                }
+                for (byte[] keyByte : keys) {
+                    connection.del(keyByte);
                 }
             } finally {
                 if (wasLocked && this.isLockingCacheWriter()) {
