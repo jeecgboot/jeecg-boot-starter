@@ -23,7 +23,7 @@ public class RedisUtil {
 
 	public List<String> scan(byte[] key) {
 		// 如果不设置count数，默认会返回10个
-		ScanOptions options = ScanOptions.scanOptions().match(key).count(1000).build();
+		ScanOptions options = ScanOptions.scanOptions().match(key).count(100000).build();
 		List<String> keys = new ArrayList<>();
 		try (Cursor<String> cursor = redisTemplate.scan(options)) {
 			while (cursor.hasNext()) {
@@ -36,7 +36,7 @@ public class RedisUtil {
 
 	public List<String> scan(String key) {
 		// 如果不设置count数，默认会返回10个
-		ScanOptions options = ScanOptions.scanOptions().match(key).count(1000).build();
+		ScanOptions options = ScanOptions.scanOptions().match(key).count(100000).build();
 		List<String> keys = new ArrayList<>();
 		try (Cursor<String> cursor = redisTemplate.scan(options)) {
 			while (cursor.hasNext()) {
