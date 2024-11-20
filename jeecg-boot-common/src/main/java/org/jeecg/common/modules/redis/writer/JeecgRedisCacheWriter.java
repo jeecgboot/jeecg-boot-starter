@@ -153,7 +153,7 @@ public class JeecgRedisCacheWriter implements RedisCacheWriter {
                     wasLocked = true;
                 }
                 // 如果不设置count数，默认会返回10个
-                ScanOptions options = ScanOptions.scanOptions().match(pattern).count(1000).build();
+                ScanOptions options = ScanOptions.scanOptions().match(pattern).count(100000).build();
                 Set<byte[]> keys = new HashSet<>();
                 try (Cursor<byte[]> cursor = connection.scan(options)) {
                     while (cursor.hasNext()) {
