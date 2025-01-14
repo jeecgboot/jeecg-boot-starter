@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jeecg.chatgpt.dto.chat.MultiChatMessage;
 import org.jeecg.chatgpt.dto.image.ImageFormat;
 import org.jeecg.chatgpt.dto.image.ImageSize;
+import org.jeecg.chatgpt.prop.AiChatProperties;
 import org.jeecg.chatgpt.service.AiChatService;
 
 import java.util.ArrayList;
@@ -35,11 +36,17 @@ public class ChatGptService implements AiChatService {
      */
     OpenAiClient client;
 
+    /**
+     * 配置文件
+     */
+    AiChatProperties aiChatProperties;
+
     private ChatGptService() {
     }
 
-    public ChatGptService(OpenAiClient openAiClient) {
+    public ChatGptService(OpenAiClient openAiClient, AiChatProperties aiChatProperties) {
         client = openAiClient;
+        this.aiChatProperties = aiChatProperties;
     }
 
 
@@ -53,7 +60,7 @@ public class ChatGptService implements AiChatService {
         Message userMsg = Message.builder().role(Message.Role.USER).content(message).build();
         ChatCompletion chatCompletion = ChatCompletion.builder()
                 .messages(Collections.singletonList(userMsg))
-                .model(ChatCompletion.Model.GPT_3_5_TURBO.getName())
+                .model(aiChatProperties.getModel())
                 .build();
         ChatCompletionResponse chatCompletionResp = client.chatCompletion(chatCompletion);
         return chatCompletionResp.getChoices().stream().map(chatChoice -> chatChoice.getMessage().getContent()).collect(Collectors.joining());
@@ -69,7 +76,7 @@ public class ChatGptService implements AiChatService {
                 .collect(Collectors.toList());
         ChatCompletion chatCompletion = ChatCompletion.builder()
                 .messages(gptMessage)
-                .model(ChatCompletion.Model.GPT_3_5_TURBO.getName())
+                .model(aiChatProperties.getModel())
                 .build();
         ChatCompletionResponse chatCompletionResponse = client.chatCompletion(chatCompletion);
         return chatCompletionResponse.getChoices().stream().map(chatChoice -> chatChoice.getMessage().getContent()).collect(Collectors.joining());
