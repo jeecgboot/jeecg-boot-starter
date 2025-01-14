@@ -1,5 +1,6 @@
 package org.jeecg.chatgpt.prop;
 
+import com.unfbx.chatgpt.entity.chat.ChatCompletion;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -20,6 +21,11 @@ public class AiChatProperties {
      * api秘钥
      */
     private String apiKey = "";
+
+    /**
+     * 使用的模型,默认gpt3.5turbo
+     */
+    private String model = ChatCompletion.Model.GPT_3_5_TURBO.getName();
 
     /**
      * api域名
