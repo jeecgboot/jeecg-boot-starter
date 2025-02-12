@@ -131,14 +131,15 @@ public class AiChatAutoConfiguration {
      * ChatGpt聊天Service
      *
      * @param openAiClient
+     * @param aiChatProperties
      * @return
      * @author chenrui
      * @date 2024/1/12 17:09
      */
     @Bean
     @ConditionalOnBean(OpenAiClient.class)
-    public AiChatService chatGptAiChatService(OpenAiClient openAiClient) {
-        return new ChatGptService(openAiClient);
+    public AiChatService chatGptAiChatService(OpenAiClient openAiClient, AiChatProperties aiChatProperties) {
+        return new ChatGptService(openAiClient, aiChatProperties);
     }
 
     /**

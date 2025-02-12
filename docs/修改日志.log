@@ -41,3 +41,9 @@ org.jeecg.common.exception.JeecgBootException
 ---author:scott---date:2024-05-24---for:功能稳定后，日志打印降级---
 org\jeecg\config\FeignConfig.java
 ---author:scott---date:2024-05-24---for:功能稳定后，日志打印降级---
+
+---author:scott---date:2025-01-14---for:[QQYUN-10943]【AI 重要】jeecg-boot-starter-chatgpt 支持deepseek等国产模型 ---
+jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/chatgpt/config/AiChatAutoConfiguration.java
+jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/chatgpt/prop/AiChatProperties.java
+jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/chatgpt/service/impl/ChatGptService.java
+---author:scott---date:2025-01-14---for:[QQYUN-10943]【AI 重要】jeecg-boot-starter-chatgpt 支持deepseek等国产模型 ---
