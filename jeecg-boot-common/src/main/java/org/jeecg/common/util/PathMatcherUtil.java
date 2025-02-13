@@ -17,7 +17,7 @@ public class PathMatcherUtil {
     public static String[] SIGN_URL_LIST = new String[]{"/sys/dict/getDictItems/*", "/sys/dict/loadDict/*",
             "/sys/dict/loadDictOrderByValue/*", "/sys/dict/loadDictItem/*", "/sys/dict/loadTreeData",
             "/sys/api/queryTableDictItemsByCode", "/sys/api/queryFilterTableDictInfo", "/sys/api/queryTableDictByKeys",
-            "/sys/api/translateDictFromTable", "/sys/api/translateDictFromTableByKeys"};
+            "/sys/api/translateDictFromTable", "/sys/api/translateDictFromTableByKeys","/online/cgform/api/4jmbi/getLinkData"};
 
     public static void main(String[] args) {
         String url = "/sys/dict/loadDictOrderByValue/tree,s2,2";
