@@ -1,17 +1,14 @@
 package org.jeecg.common.modules.redis.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-
 import org.jeecg.common.constant.CacheConstant;
 import org.jeecg.common.constant.GlobalConstants;
-
 import org.jeecg.common.modules.redis.receiver.RedisReceiver;
 import org.jeecg.common.modules.redis.writer.JeecgRedisCacheWriter;
 import org.springframework.cache.CacheManager;
@@ -19,24 +16,18 @@ import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.cache.RedisCacheManager;
-import org.springframework.data.redis.cache.RedisCacheWriter;
+import org.springframework.data.redis.cache.*;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.*;
 
-import jakarta.annotation.Resource;
 import java.time.Duration;
-
-import static java.util.Collections.singletonMap;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
 * 开启缓存支持
@@ -99,16 +90,62 @@ public class RedisConfig extends CachingConfigurerSupport {
 		/* 默认配置，设置缓存有效期 1小时*/
 		//RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1));
 		// 自定义配置test:demo 的超时时间为 5分钟
-		RedisCacheManager cacheManager = RedisCacheManager.builder(writer).cacheDefaults(redisCacheConfiguration)
-            .withInitialCacheConfigurations(singletonMap(CacheConstant.SYS_DICT_TABLE_CACHE,
-                RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10)).disableCachingNullValues()
-                    .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))))
-				.withInitialCacheConfigurations(singletonMap(CacheConstant.TEST_DEMO_CACHE, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues()))
-				.withInitialCacheConfigurations(singletonMap(CacheConstant.PLUGIN_MALL_RANKING, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues()))
-				.withInitialCacheConfigurations(singletonMap(CacheConstant.PLUGIN_MALL_PAGE_LIST, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues()))
-				.transactionAware().build();
+//		RedisCacheManager cacheManager = RedisCacheManager.builder(writer).cacheDefaults(redisCacheConfiguration)
+//            .withInitialCacheConfigurations(singletonMap(CacheConstant.SYS_DICT_TABLE_CACHE,
+//                RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10)).disableCachingNullValues()
+//                    .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))))
+//				.withInitialCacheConfigurations(singletonMap(CacheConstant.TEST_DEMO_CACHE, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues()))
+//				.withInitialCacheConfigurations(singletonMap(CacheConstant.PLUGIN_MALL_RANKING, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues()))
+//				.withInitialCacheConfigurations(singletonMap(CacheConstant.PLUGIN_MALL_PAGE_LIST, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues()))
+//				.transactionAware().build();
+
+		Map<String, RedisCacheConfiguration> initialCaches = new HashMap<>();
+		initialCaches.put(CacheConstant.SYS_DICT_TABLE_CACHE, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10)).disableCachingNullValues()
+				.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer)));
+		initialCaches.put(CacheConstant.TEST_DEMO_CACHE, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues());
+		initialCaches.put(CacheConstant.PLUGIN_MALL_RANKING, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues());
+		initialCaches.put(CacheConstant.PLUGIN_MALL_PAGE_LIST, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues());
+
+		RedisCacheManager cacheManager = new RedisConfigCacheManager(writer, redisCacheConfiguration, initialCaches);
+		cacheManager.setTransactionAware(true);
 		//update-end-author:taoyan date:20210316 for:注解CacheEvict根据key删除redis支持通配符*
 		return cacheManager;
+	}
+
+
+	public static class RedisConfigCacheManager extends RedisCacheManager {
+
+
+		public RedisConfigCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration, Map<String, RedisCacheConfiguration> initialCaches) {
+			super(cacheWriter, defaultCacheConfiguration, initialCaches, true);
+		}
+
+		private static final RedisSerializationContext.SerializationPair<Object> DEFAULT_PAIR = RedisSerializationContext.SerializationPair
+				.fromSerializer(new GenericJackson2JsonRedisSerializer());
+
+		private static final CacheKeyPrefix DEFAULT_CACHE_KEY_PREFIX = cacheName -> cacheName+":";
+
+		@Override
+		protected RedisCache createRedisCache(String name, RedisCacheConfiguration cacheConfig) {
+			final int lastIndexOf = name.lastIndexOf( '#');
+			if (lastIndexOf > -1) {
+				final String ttl = name.substring(lastIndexOf + 1);
+				final Duration duration = Duration.ofSeconds(Long.parseLong(ttl));
+				cacheConfig = cacheConfig.entryTtl(duration);
+				//修改缓存key和value值的序列化方式
+				cacheConfig = cacheConfig.computePrefixWith(DEFAULT_CACHE_KEY_PREFIX)
+						.serializeValuesWith(DEFAULT_PAIR);
+				final String cacheName = name.substring(0, lastIndexOf);
+				return super.createRedisCache(cacheName, cacheConfig);
+			}else{
+				//修改缓存key和value值的序列化方式
+				cacheConfig = cacheConfig.computePrefixWith(DEFAULT_CACHE_KEY_PREFIX)
+						.serializeValuesWith(DEFAULT_PAIR);
+				return super.createRedisCache(name, cacheConfig);
+			}
+		}
+
+
 	}
 
 	/**
