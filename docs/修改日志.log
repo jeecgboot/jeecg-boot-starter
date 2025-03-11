@@ -47,3 +47,9 @@ jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/chatgpt/config/AiChatAutoConf
 jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/chatgpt/prop/AiChatProperties.java
 jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/chatgpt/service/impl/ChatGptService.java
 ---author:scott---date:2025-01-14---for:[QQYUN-10943]【AI 重要】jeecg-boot-starter-chatgpt 支持deepseek等国产模型 ---
+
+---author:chenrui---date:2025/3/11-----for:[QQYUN-11379]将chatgpt-java换成langchain4j---
+src/main/java/org/jeecg/ai/** (+)
+src/main/java/org/jeecg/chatgpt/service/impl/ChatGptService.java
+pom.xml
+---author:chenrui---date:2025/3/11-----for:[QQYUN-11379]将chatgpt-java换成langchain4j---
