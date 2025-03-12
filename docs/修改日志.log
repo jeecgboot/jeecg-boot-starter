@@ -53,3 +53,7 @@ src/main/java/org/jeecg/ai/** (+)
 src/main/java/org/jeecg/chatgpt/service/impl/ChatGptService.java
 pom.xml
 ---author:chenrui---date:2025/3/11-----for:[QQYUN-11379]将chatgpt-java换成langchain4j---
+
+---author:chenrui---date:2025/3/12-----for: 确保openAI的接口以v1结尾.---
+jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/ai/factory/AiModelFactory.java
+---author:chenrui---date:2025/3/12-----for: 确保openAI的接口以v1结尾.---

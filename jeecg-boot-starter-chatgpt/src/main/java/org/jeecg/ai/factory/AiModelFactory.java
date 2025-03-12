@@ -16,6 +16,8 @@ import dev.langchain4j.model.zhipu.ZhipuAiChatModel;
 import dev.langchain4j.model.zhipu.ZhipuAiEmbeddingModel;
 import dev.langchain4j.model.zhipu.ZhipuAiStreamingChatModel;
 import dev.langchain4j.model.zhipu.chat.ChatCompletionModel;
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
 import java.time.Duration;
@@ -83,6 +85,8 @@ public class AiModelFactory {
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
                 assertNotEmpty("apiKey不能为空", apiKey);
+                // 确保baseUrl以v1结尾
+                baseUrl = ensureOpenAiUrlEnd(baseUrl);
                 modelName = getString(modelName, OpenAiChatModelName.GPT_3_5_TURBO.toString());
                 OpenAiChatModel.OpenAiChatModelBuilder openAIBuilder = OpenAiChatModel.builder()
                         .apiKey(apiKey)
@@ -180,6 +184,8 @@ public class AiModelFactory {
             case AIMODEL_TYPE_DEEPSEEK:
                 assertNotEmpty("apiKey不能为空", apiKey);
                 baseUrl = getString(baseUrl, "https://api.deepseek.com/v1");
+                // 确保baseUrl以v1结尾
+                baseUrl = ensureOpenAiUrlEnd(baseUrl);
                 modelName = getString(modelName, "deepseek-chat");
                 OpenAiChatModel.OpenAiChatModelBuilder dsBuilder = OpenAiChatModel.builder()
                         .apiKey(apiKey)
@@ -234,6 +240,8 @@ public class AiModelFactory {
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
                 assertNotEmpty("apiKey不能为空", apiKey);
+                // 确保baseUrl以v1结尾
+                baseUrl = ensureOpenAiUrlEnd(baseUrl);
                 modelName = getString(modelName, OpenAiChatModelName.GPT_3_5_TURBO.toString());
                 OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder openAIBuilder = OpenAiStreamingChatModel.builder()
                         .apiKey(apiKey)
@@ -327,6 +335,8 @@ public class AiModelFactory {
             case AIMODEL_TYPE_DEEPSEEK:
                 assertNotEmpty("apiKey不能为空", apiKey);
                 baseUrl = getString(baseUrl, "https://api.deepseek.com/v1");
+                // 确保baseUrl以v1结尾
+                baseUrl = ensureOpenAiUrlEnd(baseUrl);
                 modelName = getString(modelName, "deepseek-chat");
                 OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder dsBuilder = OpenAiStreamingChatModel.builder()
                         .apiKey(apiKey)
@@ -377,6 +387,8 @@ public class AiModelFactory {
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
                 assertNotEmpty("apiKey不能为空", apiKey);
+                // 确保baseUrl以v1结尾
+                baseUrl = ensureOpenAiUrlEnd(baseUrl);
                 modelName = getString(modelName, OpenAiEmbeddingModelName.TEXT_EMBEDDING_ADA_002.toString());
                 embeddingModel = OpenAiEmbeddingModel.builder()
                         .apiKey(apiKey)
@@ -479,6 +491,28 @@ public class AiModelFactory {
             return 0 == Array.getLength(obj);
         }
         return false;
+    }
+
+
+    /**
+     * 确保openai的url以v1结尾
+     *
+     * @param baseUrl
+     * @return
+     * @author chenrui
+     * @date 2025/3/12 20:44
+     */
+    @Nullable
+    private static String ensureOpenAiUrlEnd(String baseUrl) {
+        if (StringUtils.isNotEmpty(baseUrl)) {
+            if (baseUrl.endsWith("/")) {
+                baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+            }
+            if (!baseUrl.endsWith("v1")) {
+                baseUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/") + "v1";
+            }
+        }
+        return baseUrl;
     }
 
     /**
