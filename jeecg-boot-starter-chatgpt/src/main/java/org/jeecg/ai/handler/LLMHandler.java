@@ -45,6 +45,25 @@ public class LLMHandler {
     public LLMHandler() {
     }
 
+
+    /**
+     * 确保aiParams
+     *
+     * @param params
+     * @return
+     * @author chenrui
+     * @date 2025/3/12 15:22
+     */
+    private AIParams ensureParams(AIParams params) {
+        if (null == params || StringUtils.isEmpty(params.getApiKey())) {
+            params = getDefaultModel(params);
+        }
+        if (null == params) {
+            throw new IllegalArgumentException("大语言模型参数为空");
+        }
+        return params;
+    }
+
     /**
      * 获取默认大模型数据
      *
@@ -52,12 +71,14 @@ public class LLMHandler {
      * @author chenrui
      * @date 2025/2/25 19:26
      */
-    private AIParams getDefaultModel() {
+    private AIParams getDefaultModel(AIParams params) {
         if (null == aiChatProperties) {
             log.warn("未配置默认大预言模型");
             return null;
         }
-        AIParams params = new AIParams();
+        if (params == null) {
+            params = new AIParams();
+        }
         params.setProvider(aiChatProperties.getProvider());
         params.setModelName(aiChatProperties.getModel());
         params.setBaseUrl(aiChatProperties.getApiHost());
@@ -81,12 +102,7 @@ public class LLMHandler {
      * @date 2025/2/24 17:30
      */
     public String completions(List<ChatMessage> messages, AIParams params) {
-        if (null == params) {
-            params = getDefaultModel();
-        }
-        if (null == params) {
-            throw new IllegalArgumentException("大语言模型参数为空");
-        }
+        params = ensureParams(params);
 
         AiModelOptions modelOp = params.toModelOptions();
         ChatLanguageModel chatModel = AiModelFactory.createChatModel(modelOp);
@@ -105,11 +121,15 @@ public class LLMHandler {
             chatAssistantBuilder.chatMemory(chatMessage.chatMemory);
         }
         AiChatAssistant chatAssistant = chatAssistantBuilder.build();
+        log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
+        String resp = "";
         if (StringUtils.isNotEmpty(chatMessage.systemMessage)) {
-            return chatAssistant.chat(chatMessage.systemMessage, chatMessage.prompt);
+            resp = chatAssistant.chat(chatMessage.systemMessage, chatMessage.prompt);
         } else {
-            return chatAssistant.chat(chatMessage.prompt);
+            resp = chatAssistant.chat(chatMessage.prompt);
         }
+        log.info("[LLMHandler] Received the AI's response . message: {}", resp);
+        return resp;
     }
 
     /**
@@ -122,10 +142,7 @@ public class LLMHandler {
      * @date 2025/2/24 17:29
      */
     public TokenStream chat(List<ChatMessage> messages, AIParams params) {
-        if (null == params) {
-            params = getDefaultModel();
-        }
-
+        params = ensureParams(params);
         if (null == params) {
             throw new IllegalArgumentException("大语言模型参数为空");
         }
@@ -149,6 +166,7 @@ public class LLMHandler {
         }
 
         AiStreamChatAssistant chatAssistant = chatAssistantBuilder.build();
+        log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
         if (null != chatMessage.systemMessage && !chatMessage.systemMessage.isEmpty()) {
             return chatAssistant.chat(chatMessage.systemMessage, chatMessage.prompt);
         } else {
@@ -196,7 +214,7 @@ public class LLMHandler {
             prompt = prompt.replaceAll("\\{\\{(.*?)}}", "$1");
             // 历史消息
             // 最大消息数: 系统消息和用户消息也会计数,所以最大消息增加两个
-            int maxMsgNumber = 10 + 2;
+            int maxMsgNumber = 4 + 2;
             if (null != params.getMaxMsgNumber()) {
                 maxMsgNumber = params.getMaxMsgNumber() + 2;
             }
@@ -226,6 +244,16 @@ public class LLMHandler {
             this.systemMessage = systemMessage;
             this.prompt = prompt;
             this.chatMemory = chatMemory;
+        }
+
+        @Override
+        public String toString() {
+            // 返回完整的消息内容
+            return "{" +
+                    "systemMessage='" + systemMessage + '\'' +
+                    ", prompt='" + prompt + '\'' +
+                    ", chatMemory=" + (chatMemory != null ? chatMemory.messages() : "null") +
+                    '}';
         }
     }
 
