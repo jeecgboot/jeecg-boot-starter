@@ -53,7 +53,7 @@ public class AIParams {
     /**
      * 最大记录消息
      */
-    Integer maxMsgNumber = 10;
+    Integer maxMsgNumber = 4;
 
     /**
      * temperature:温度
@@ -77,6 +77,11 @@ public class AIParams {
      */
     Integer maxTokens;
 
+    /**
+     * 超时时间
+     */
+    Integer timeout;
+
     public AiModelOptions toModelOptions() {
         return AiModelOptions.builder()
                 .provider(this.getProvider())
@@ -91,6 +96,7 @@ public class AIParams {
                 .maxTokens(this.getMaxTokens())
                 .topNumber(this.getTopNumber())
                 .similarity(this.getSimilarity())
+                .timeout(this.getTimeout())
                 .build();
     }
 

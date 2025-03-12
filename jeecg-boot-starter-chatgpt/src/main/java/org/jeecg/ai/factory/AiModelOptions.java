@@ -66,10 +66,16 @@ public class AiModelOptions {
      */
     Double similarity;
 
+    /**
+     * 超时时间
+     */
+    Integer timeout;
+
     @Override
     public String toString() {
         return "AiModelOptions{" +
-                "apiKey='" + apiKey + '\'' +
+                "provider='" + provider + '\'' +
+                ", apiKey='" + apiKey + '\'' +
                 ", secretKey='" + secretKey + '\'' +
                 ", baseUrl='" + baseUrl + '\'' +
                 ", modelName='" + modelName + '\'' +
@@ -78,6 +84,9 @@ public class AiModelOptions {
                 ", presencePenalty=" + presencePenalty +
                 ", frequencyPenalty=" + frequencyPenalty +
                 ", maxTokens=" + maxTokens +
+                ", topNumber=" + topNumber +
+                ", similarity=" + similarity +
+                ", timeout=" + timeout +
                 '}';
     }
 }

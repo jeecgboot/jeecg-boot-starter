@@ -80,6 +80,7 @@ public class AiModelFactory {
         double presencePenalty = getDouble(options.getPresencePenalty(), 0D);
         double frequencyPenalty = getDouble(options.getFrequencyPenalty(), 0D);
         double repetitionPenalty = 1.0 + (presencePenalty + frequencyPenalty) / 2.0;
+        int timeout = getInteger(options.getTimeout(),120);
         Integer maxTokens = options.getMaxTokens();
         ChatLanguageModel chatModel = null;
         switch (options.getProvider().toUpperCase()) {
@@ -100,6 +101,7 @@ public class AiModelFactory {
                         .presencePenalty(presencePenalty)
                         // 频率惩罚 0-1 step 0.1
                         .frequencyPenalty(frequencyPenalty)
+                        .timeout(Duration.ofSeconds(timeout))
                         .logRequests(true)
                         .logResponses(true);
                 if (null != maxTokens) {
@@ -118,10 +120,10 @@ public class AiModelFactory {
                         .temperature(temperature)
                         // 多样性  0-1 step 0.1
                         .topP(topP)
-                        .callTimeout(Duration.ofMinutes(10))
-                        .readTimeout(Duration.ofMinutes(10))
-                        .connectTimeout(Duration.ofMinutes(3))
-                        .writeTimeout(Duration.ofMinutes(3));
+                        .callTimeout(Duration.ofSeconds(timeout))
+                        .readTimeout(Duration.ofSeconds(timeout))
+                        .connectTimeout(Duration.ofSeconds(timeout))
+                        .writeTimeout(Duration.ofSeconds(timeout));
                 if (null != maxTokens) {
                     zhipuBuilder.maxToken(maxTokens);
                 }
@@ -178,6 +180,7 @@ public class AiModelFactory {
                         .topP(topP)
                         // 重复惩罚
                         .repeatPenalty(repetitionPenalty)
+                        .timeout(Duration.ofSeconds(timeout))
                         .maxRetries(3)
                         .build();
                 break;
@@ -199,7 +202,7 @@ public class AiModelFactory {
                         .presencePenalty(presencePenalty)
                         // 频率惩罚 0-1 step 0.1
                         .frequencyPenalty(frequencyPenalty)
-                        .temperature(temperature);
+                        .timeout(Duration.ofSeconds(timeout));
                 if (null != maxTokens) {
                     dsBuilder.maxTokens(maxTokens);
                 }
@@ -235,6 +238,7 @@ public class AiModelFactory {
         double presencePenalty = getDouble(options.getPresencePenalty(), 0D);
         double frequencyPenalty = getDouble(options.getFrequencyPenalty(), 0D);
         double repetitionPenalty = 1.0 + (presencePenalty + frequencyPenalty) / 2.0;
+        int timeout = getInteger(options.getTimeout(),120);
         Integer maxTokens = options.getMaxTokens();
         StreamingChatLanguageModel chatModel = null;
         switch (options.getProvider().toUpperCase()) {
@@ -255,6 +259,7 @@ public class AiModelFactory {
                         .presencePenalty(presencePenalty)
                         // 频率惩罚 0-1 step 0.1
                         .frequencyPenalty(frequencyPenalty)
+                        .timeout(Duration.ofSeconds(timeout))
                         .logRequests(true)
                         .logResponses(true);
                 if (null != maxTokens) {
@@ -273,10 +278,10 @@ public class AiModelFactory {
                         .temperature(temperature)
                         // 多样性  0-1 step 0.1
                         .topP(topP)
-                        .callTimeout(Duration.ofMinutes(10))
-                        .readTimeout(Duration.ofMinutes(10))
-                        .connectTimeout(Duration.ofMinutes(3))
-                        .writeTimeout(Duration.ofMinutes(3));
+                        .callTimeout(Duration.ofSeconds(timeout))
+                        .readTimeout(Duration.ofSeconds(timeout))
+                        .connectTimeout(Duration.ofSeconds(timeout))
+                        .writeTimeout(Duration.ofSeconds(timeout));
                 if (null != maxTokens) {
                     zhipuBuilder.maxToken(maxTokens);
                 }
@@ -329,7 +334,7 @@ public class AiModelFactory {
                         .topP(topP)
                         // 重复惩罚
                         .repeatPenalty(repetitionPenalty)
-                        .timeout(Duration.ofMinutes(10))
+                        .timeout(Duration.ofSeconds(timeout))
                         .build();
                 break;
             case AIMODEL_TYPE_DEEPSEEK:
@@ -350,8 +355,7 @@ public class AiModelFactory {
                         .presencePenalty(presencePenalty)
                         // 频率惩罚 0-1 step 0.1
                         .frequencyPenalty(frequencyPenalty)
-                        .temperature(temperature)
-                        .timeout(Duration.ofMinutes(10));
+                        .timeout(Duration.ofSeconds(timeout));
                 if (null != maxTokens) {
                     dsBuilder.maxTokens(maxTokens);
                 }
@@ -383,6 +387,7 @@ public class AiModelFactory {
         String secretKey = options.getSecretKey();
         String baseUrl = options.getBaseUrl();
         String modelName = options.getModelName();
+        int timeout = getInteger(options.getTimeout(),120);
         EmbeddingModel embeddingModel;
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
@@ -394,6 +399,7 @@ public class AiModelFactory {
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
                         .modelName(modelName)
+                        .timeout(Duration.ofSeconds(timeout))
                         .logRequests(true)
                         .logResponses(true)
                         .build();
@@ -405,11 +411,11 @@ public class AiModelFactory {
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
                         .model(modelName)
-                        .callTimeout(Duration.ofMinutes(10))
-                        .readTimeout(Duration.ofMinutes(10))
-                        .connectTimeout(Duration.ofMinutes(3))
-                        .writeTimeout(Duration.ofMinutes(3))
-                        // TODO author: chenrui for:临时写死,应该根据模型动态调整的 date:2025/3/7
+                        .callTimeout(Duration.ofSeconds(timeout))
+                        .readTimeout(Duration.ofSeconds(timeout))
+                        .connectTimeout(Duration.ofSeconds(timeout))
+                        .writeTimeout(Duration.ofSeconds(timeout))
+                        // TODO author: chenrui for:临时写死,PGV不支持超过2000的向量索引date:2025/3/7
                         .dimensions(1536)
                         .build();
                 break;
@@ -441,6 +447,7 @@ public class AiModelFactory {
                         .baseUrl(baseUrl)
                         .modelName(modelName)
                         .maxRetries(3)
+                        .timeout(Duration.ofSeconds(timeout))
                         .build();
                 break;
             default:
@@ -545,6 +552,17 @@ public class AiModelFactory {
 
     public static String getString(CharSequence str, String defaultStr) {
         return isEmpty(str) ? defaultStr : str.toString();
+    }
+
+    public static Integer getInteger(Integer object, Integer defval) {
+        if (object == null) {
+            return (defval);
+        }
+        try {
+            return (Integer.parseInt(object.toString()));
+        } catch (NumberFormatException e) {
+            return (defval);
+        }
     }
 
     public static Double getDouble(Double object, Double defval) {
