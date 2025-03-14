@@ -65,3 +65,7 @@ src/main/java/org/jeecg/ai/handler/AIParams.java
 src/main/java/org/jeecg/ai/handler/LLMHandler.java
 ---author:chenrui---date:2025/3/12-----for: 确保能正确获取默认模型,增加超时时间,增加日志---
 
+---author:chenrui---date:2025/3/14-----for: 移除langchain4j 失败后不重试,防止请求堆积.---
+src/main/java/org/jeecg/ai/factory/AiModelFactory.java
+---author:chenrui---date:2025/3/14-----for: 移除langchain4j 失败后不重试,防止请求堆积.---
+
