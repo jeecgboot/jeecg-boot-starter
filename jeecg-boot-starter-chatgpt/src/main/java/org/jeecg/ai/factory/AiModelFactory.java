@@ -102,6 +102,7 @@ public class AiModelFactory {
                         // 频率惩罚 0-1 step 0.1
                         .frequencyPenalty(frequencyPenalty)
                         .timeout(Duration.ofSeconds(timeout))
+                        .maxRetries(0)
                         .logRequests(true)
                         .logResponses(true);
                 if (null != maxTokens) {
@@ -120,6 +121,7 @@ public class AiModelFactory {
                         .temperature(temperature)
                         // 多样性  0-1 step 0.1
                         .topP(topP)
+                        .maxRetries(0)
                         .callTimeout(Duration.ofSeconds(timeout))
                         .readTimeout(Duration.ofSeconds(timeout))
                         .connectTimeout(Duration.ofSeconds(timeout))
@@ -144,7 +146,7 @@ public class AiModelFactory {
                         .topP(topP)
                         // 惩罚分数
                         .penaltyScore(repetitionPenalty)
-                        .maxRetries(3);
+                        .maxRetries(0);
                 if (null != maxTokens) {
                     qianfanBuilder.maxOutputTokens(maxTokens);
                 }
@@ -400,6 +402,7 @@ public class AiModelFactory {
                         .baseUrl(baseUrl)
                         .modelName(modelName)
                         .timeout(Duration.ofSeconds(timeout))
+                        .maxRetries(0)
                         .logRequests(true)
                         .logResponses(true)
                         .build();
@@ -417,6 +420,7 @@ public class AiModelFactory {
                         .writeTimeout(Duration.ofSeconds(timeout))
                         // TODO author: chenrui for:临时写死,PGV不支持超过2000的向量索引date:2025/3/7
                         .dimensions(1536)
+                        .maxRetries(0)
                         .build();
                 break;
             case AIMODEL_TYPE_QIANFAN:
@@ -428,7 +432,7 @@ public class AiModelFactory {
                         .baseUrl(baseUrl)
                         .secretKey(secretKey)
                         .modelName(modelName)
-                        .maxRetries(3)
+                        .maxRetries(0)
                         .build();
                 break;
             case AIMODEL_TYPE_QWEN:
@@ -448,6 +452,7 @@ public class AiModelFactory {
                         .modelName(modelName)
                         .maxRetries(3)
                         .timeout(Duration.ofSeconds(timeout))
+                        .maxRetries(0)
                         .build();
                 break;
             default:
