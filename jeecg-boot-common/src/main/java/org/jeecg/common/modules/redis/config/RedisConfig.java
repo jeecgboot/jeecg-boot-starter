@@ -33,7 +33,6 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.util.Collections.singletonMap;
 
 /**
 * 开启缓存支持
@@ -127,9 +126,9 @@ public class RedisConfig extends CachingConfigurerSupport {
 		}
 
 		private static final RedisSerializationContext.SerializationPair<Object> DEFAULT_PAIR = RedisSerializationContext.SerializationPair
-				.fromSerializer(new GenericJackson2JsonRedisSerializer());
+				.fromSerializer(jacksonSerializer());
 
-		private static final CacheKeyPrefix DEFAULT_CACHE_KEY_PREFIX = cacheName -> cacheName+":";
+		private static final CacheKeyPrefix DEFAULT_CACHE_KEY_PREFIX = cacheName -> cacheName + "::";
 
 		@Override
 		protected RedisCache createRedisCache(String name, RedisCacheConfiguration cacheConfig) {
@@ -176,7 +175,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 		return messageListenerAdapter;
 	}
 
-	private Jackson2JsonRedisSerializer jacksonSerializer() {
+	private static Jackson2JsonRedisSerializer jacksonSerializer() {
 		Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
