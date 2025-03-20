@@ -1,29 +1,30 @@
 package org.jeecg.ai.handler;
 
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.ChatMessageType;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.data.message.*;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.output.Response;
+import dev.langchain4j.rag.AugmentationRequest;
+import dev.langchain4j.rag.AugmentationResult;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
-import dev.langchain4j.service.AiServices;
+import dev.langchain4j.rag.query.Metadata;
+import dev.langchain4j.service.AiServiceContext;
+import dev.langchain4j.service.AiServiceTokenStream;
 import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.service.output.ServiceOutputParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.jeecg.ai.assistant.AiChatAssistant;
 import org.jeecg.ai.assistant.AiStreamChatAssistant;
 import org.jeecg.ai.factory.AiModelFactory;
 import org.jeecg.ai.factory.AiModelOptions;
 import org.jeecg.ai.prop.AiChatProperties;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 大模型聊天工具类
@@ -36,6 +37,8 @@ public class LLMHandler {
 
 
     private AiChatProperties aiChatProperties;
+
+    private final ServiceOutputParser serviceOutputParser = new ServiceOutputParser();
 
 
     public LLMHandler(AiChatProperties aiChatProperties) {
@@ -106,28 +109,13 @@ public class LLMHandler {
 
         AiModelOptions modelOp = params.toModelOptions();
         ChatLanguageModel chatModel = AiModelFactory.createChatModel(modelOp);
-        AiServices<AiChatAssistant> chatAssistantBuilder = AiServices.builder(AiChatAssistant.class);
-        chatAssistantBuilder.chatLanguageModel(chatModel);
-
-        // RAG
-        if (null != params.getQueryRouter()) {
-            chatAssistantBuilder.retrievalAugmentor(DefaultRetrievalAugmentor.builder().queryRouter(params.getQueryRouter()).build());
-        }
 
         // 整理消息
         CollateMsgResp chatMessage = collateMessage(messages, params);
-        // 整理消息
-        if (null != chatMessage.chatMemory) {
-            chatAssistantBuilder.chatMemory(chatMessage.chatMemory);
-        }
-        AiChatAssistant chatAssistant = chatAssistantBuilder.build();
+
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
-        String resp = "";
-        if (StringUtils.isNotEmpty(chatMessage.systemMessage)) {
-            resp = chatAssistant.chat(chatMessage.systemMessage, chatMessage.prompt);
-        } else {
-            resp = chatAssistant.chat(chatMessage.prompt);
-        }
+        Response<AiMessage> response = chatModel.generate(chatMessage.chatMemory.messages());
+        String resp = (String) serviceOutputParser.parse(response, String.class);
         log.info("[LLMHandler] Received the AI's response . message: {}", resp);
         return resp;
     }
@@ -150,28 +138,19 @@ public class LLMHandler {
         // model
         AiModelOptions modelOp = params.toModelOptions();
         StreamingChatLanguageModel streamingChatModel = AiModelFactory.createStreamingChatModel(modelOp);
-        AiServices<AiStreamChatAssistant> chatAssistantBuilder = AiServices.builder(AiStreamChatAssistant.class);
-        chatAssistantBuilder.streamingChatLanguageModel(streamingChatModel);
 
-        // RAG
-        if (null != params.getQueryRouter()) {
-            chatAssistantBuilder.retrievalAugmentor(DefaultRetrievalAugmentor.builder().queryRouter(params.getQueryRouter()).build());
-        }
-
-        // 整理消息
         CollateMsgResp chatMessage = collateMessage(messages, params);
-        // 整理消息
-        if (null != chatMessage.chatMemory) {
-            chatAssistantBuilder.chatMemory(chatMessage.chatMemory);
-        }
-
-        AiStreamChatAssistant chatAssistant = chatAssistantBuilder.build();
+        AiServiceContext context = new AiServiceContext(AiStreamChatAssistant.class);
+        context.streamingChatModel = streamingChatModel;
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
-        if (null != chatMessage.systemMessage && !chatMessage.systemMessage.isEmpty()) {
-            return chatAssistant.chat(chatMessage.systemMessage, chatMessage.prompt);
-        } else {
-            return chatAssistant.chat(chatMessage.prompt);
-        }
+        return new AiServiceTokenStream(
+                chatMessage.chatMemory.messages(),
+                null,
+                null,
+                chatMessage.augmentationResult != null ? chatMessage.augmentationResult.contents() : null,
+                context,
+                "default"
+        );
     }
 
     /**
@@ -181,79 +160,102 @@ public class LLMHandler {
      * @param params
      * @return
      * @author chenrui
-     * @date 2025/2/14 15:02
+     * @date 2025/3/18 16:52
      */
-    @NotNull
     private CollateMsgResp collateMessage(List<ChatMessage> messages, AIParams params) {
         if (null == params) {
             params = new AIParams();
         }
-        String systemMessage = "";
-        String prompt = "";
-        ChatMemory chatMemory = null;
-        if (null != messages && !messages.isEmpty()) {
-            List<ChatMessage> messagesCopy = new ArrayList<>(messages); // <--- 新增拷贝操作
 
-            // 系统消息
-            systemMessage = messagesCopy.stream()
-                    .filter(chatMessage -> ChatMessageType.SYSTEM.equals(chatMessage.type()))
-                    .map(chatMessage -> ((SystemMessage) chatMessage).text())
-                    .collect(Collectors.joining("\n"));
-            // 用户消息
-            for (int i = messagesCopy.size() - 1; i >= 0; i--) {
-                ChatMessage tempMsg = messagesCopy.get(i);
-                if (ChatMessageType.USER.equals(tempMsg.type())) {
-                    prompt = ((UserMessage) tempMsg).singleText();
-                    messagesCopy.remove(i);
-                    break;
+        // 获取用户消息
+        List<ChatMessage> messagesCopy = new ArrayList<>(messages);
+        UserMessage userMessage = null;
+        ChatMessage lastMessage = messagesCopy.get(messagesCopy.size() - 1);
+        if (lastMessage.type().equals(ChatMessageType.USER)) {
+            userMessage = (UserMessage) messagesCopy.remove(messagesCopy.size() - 1);
+        } else {
+            throw new IllegalArgumentException("最后一条消息必须是用户消息");
+        }
+
+        // 最大消息数: 系统消息和用户消息也会计数,所以最大消息增加两个
+        int maxMsgNumber = 4 + 2;
+        if (null != params.getMaxMsgNumber()) {
+            maxMsgNumber = params.getMaxMsgNumber() + 2;
+        }
+
+
+        // 系统消息
+        AtomicReference<SystemMessage> systemMessageAto = new AtomicReference<>();
+        messagesCopy.removeIf(tempMsg -> {
+            if (ChatMessageType.SYSTEM.equals(tempMsg.type())) {
+                if (systemMessageAto.get() == null) {
+                    systemMessageAto.set((SystemMessage) tempMsg);
+                } else {
+                    SystemMessage systemMessage = systemMessageAto.get();
+                    String text = systemMessage.text() + "\n" + ((SystemMessage) tempMsg).text();
+                    systemMessageAto.set(SystemMessage.from(text));
                 }
+                return true;
             }
-            if (StringUtils.isNotEmpty(params.getKnowledgeTxt())) {
-                prompt = String.format("%s\n\n用以下信息回答问题:\n%s\n\n", prompt, params.getKnowledgeTxt());
-            }
-            prompt = prompt.replaceAll("\\{\\{(.*?)}}", "$1");
-            // 历史消息
-            // 最大消息数: 系统消息和用户消息也会计数,所以最大消息增加两个
-            int maxMsgNumber = 4 + 2;
-            if (null != params.getMaxMsgNumber()) {
-                maxMsgNumber = params.getMaxMsgNumber() + 2;
-            }
-            chatMemory = MessageWindowChatMemory.builder().maxMessages(maxMsgNumber).build();
-            for (ChatMessage chatMessage : messagesCopy) {
-                if (null == chatMessage || chatMessage.type().equals(ChatMessageType.SYSTEM)) {
-                    continue;
+            return false;
+        });
+
+        // 消息缓存
+        ChatMemory chatMemory = MessageWindowChatMemory.builder().maxMessages(maxMsgNumber).build();
+
+        // 添加系统消息到
+        if (null != systemMessageAto.get()) {
+            chatMemory.add(systemMessageAto.get());
+        }
+        // 添加历史消息
+        messagesCopy.forEach(chatMemory::add);
+
+
+        // RAG
+        AugmentationResult augmentationResult = null;
+        if (null != params.getQueryRouter()) {
+            DefaultRetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder().queryRouter(params.getQueryRouter()).build();
+            if (retrievalAugmentor != null) {
+                StringBuilder userQuestion = new StringBuilder();
+                List<Content> contents = new ArrayList<>(userMessage.contents());
+                for (int i = contents.size() - 1; i >= 0; i--) {
+                    if (contents.get(i) instanceof TextContent) {
+                        userQuestion.append(((TextContent) contents.remove(i)).text());
+                        userQuestion.append("\n");
+                    }
                 }
-                chatMemory.add(chatMessage);
+                UserMessage textUserMessage = UserMessage.from(userQuestion.toString());
+                Metadata metadata = Metadata.from(textUserMessage, "default", chatMemory.messages());
+                AugmentationRequest augmentationRequest = new AugmentationRequest(textUserMessage, metadata);
+                augmentationResult = retrievalAugmentor.augment(augmentationRequest);
+                textUserMessage = (UserMessage) augmentationResult.chatMessage();
+                contents.add(TextContent.from(textUserMessage.singleText()));
+                userMessage = UserMessage.from(contents);
             }
         }
-        return new CollateMsgResp(systemMessage, prompt, chatMemory);
+        // 用户消息
+        chatMemory.add(userMessage);
+        return new CollateMsgResp(chatMemory, augmentationResult);
     }
 
     /**
-     * 整理后的消息
-     *
+     * 消息整理返回值
      * @author chenrui
-     * @date 2025/2/14 16:34
+     * @date 2025/3/18 16:53
      */
     private static class CollateMsgResp {
-        public final String systemMessage;
-        public final String prompt;
         public final ChatMemory chatMemory;
+        public final AugmentationResult augmentationResult;
 
-        public CollateMsgResp(String systemMessage, String prompt, ChatMemory chatMemory) {
-            this.systemMessage = systemMessage;
-            this.prompt = prompt;
+        public CollateMsgResp(ChatMemory chatMemory, AugmentationResult augmentationResult) {
             this.chatMemory = chatMemory;
+            this.augmentationResult = augmentationResult;
         }
 
         @Override
         public String toString() {
             // 返回完整的消息内容
-            return "{" +
-                    "systemMessage='" + systemMessage + '\'' +
-                    ", prompt='" + prompt + '\'' +
-                    ", chatMemory=" + (chatMemory != null ? chatMemory.messages() : "null") +
-                    '}';
+            return "{messages=" + (chatMemory != null ? chatMemory.messages() : "null") + "}";
         }
     }
 
