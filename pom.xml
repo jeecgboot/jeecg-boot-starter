@@ -48,6 +48,8 @@
         <!-- SpringCloud -->
         <spring-cloud.version>2022.0.4</spring-cloud.version>
         <spring-cloud-alibaba.version>2022.0.0.0</spring-cloud-alibaba.version>
+
+        <logback.version>1.4.12</logback.version>
     </properties>
 
     <modules>
