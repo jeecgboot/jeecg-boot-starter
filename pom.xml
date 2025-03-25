@@ -36,6 +36,7 @@
         <hutool.version>5.8.25</hutool.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <guava.version>29.0-jre</guava.version>
+        <logback.version>1.2.13</logback.version>
         <!-- chatGpt -->
         <chat-gpt-java.varsion>1.1.5</chat-gpt-java.varsion>
         <commons.version>2.6</commons.version>
