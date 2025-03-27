@@ -10,11 +10,27 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jeecg-boot-starter-seata</artifactId>
     <description>分布式事务</description>
+    
+    <properties>
+        <druid.version>1.2.24</druid.version>
+    </properties>
     <dependencies>
         <!-- seata依赖 -->
         <dependency>
             <groupId>io.seata</groupId>
             <artifactId>seata-spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>druid</artifactId>
+                    <groupId>com.alibaba</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- druid -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>${druid.version}</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba.nacos</groupId>
