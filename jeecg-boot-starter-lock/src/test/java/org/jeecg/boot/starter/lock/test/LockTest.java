@@ -1,17 +1,14 @@
 package org.jeecg.boot.starter.lock.test;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = LockTestApplication.class)
 public class LockTest {
     @Autowired
