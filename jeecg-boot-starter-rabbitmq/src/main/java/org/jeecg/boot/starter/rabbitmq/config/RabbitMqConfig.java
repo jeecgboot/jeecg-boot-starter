@@ -79,7 +79,7 @@ public class RabbitMqConfig implements RabbitListenerConfigurer {
     //update-begin---author:scott ---date:2023-03-22  for：[QQYUN-4114]简流数据事务，并行和串行规则实现-------------
     @Bean
     public RabbitListenerErrorHandler rabbitListenerErrorHandler() {
-        return (amqpMessage, message, exception) -> {
+        return (amqpMessage, channel,message, exception) -> {
             exception.printStackTrace();
             throw exception;
         };
