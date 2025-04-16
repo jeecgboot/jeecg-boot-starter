@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -265,4 +266,15 @@ public class JeecgRedisCacheWriter implements RedisCacheWriter {
         return null;
     }
     //update-begin-author:zyf date:20220216 for:升级springboot版本到2.4.0+以后需要实现的方法*
+
+
+    @Override
+    public CompletableFuture<byte[]> retrieve(String name, byte[] key, Duration ttl) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> store(String name, byte[] key, byte[] value, Duration ttl) {
+        return null;
+    }
 }

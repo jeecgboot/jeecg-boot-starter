@@ -13,7 +13,7 @@
     <dependencies>
         <!-- seata依赖 -->
         <dependency>
-            <groupId>io.seata</groupId>
+            <groupId>org.apache.seata</groupId>
             <artifactId>seata-spring-boot-starter</artifactId>
         </dependency>
         <dependency>

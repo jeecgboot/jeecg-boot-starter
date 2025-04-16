@@ -13,12 +13,7 @@ import org.redisson.RedissonRedLock;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -90,7 +85,7 @@ public class DistributedLockHandler extends BaseAspect{
         if (keys.length == 0) {
             throw new RuntimeException("keys不能为空");
         }
-        String[] parameterNames = new LocalVariableTableParameterNameDiscoverer().getParameterNames(((MethodSignature) joinPoint.getSignature()).getMethod());
+        String[] parameterNames = new DefaultParameterNameDiscoverer().getParameterNames(((MethodSignature) joinPoint.getSignature()).getMethod());
         Object[] args = joinPoint.getArgs();
 
         LockModel lockModel = jLock.lockModel();
