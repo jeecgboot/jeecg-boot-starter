@@ -10,6 +10,10 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jeecg-boot-starter-cloud</artifactId>
 
+    <properties>
+        <fastjson.version>2.0.57</fastjson.version>
+    </properties>
+    
     <dependencies>
         <!-- 底层共通依赖-->
         <dependency>
@@ -52,7 +56,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>2.0.56</version>
+            <version>${fastjson.version}</version>
         </dependency>
         <!--sentinel持久化 -->
         <dependency>
