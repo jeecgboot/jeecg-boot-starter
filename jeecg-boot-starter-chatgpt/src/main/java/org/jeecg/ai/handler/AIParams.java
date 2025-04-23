@@ -35,10 +35,6 @@ public class AIParams {
      */
     String secretKey;
     /**
-     * 文本类型的背景知识
-     */
-    String knowledgeTxt;
-    /**
      * 向量路由
      */
     QueryRouter queryRouter;

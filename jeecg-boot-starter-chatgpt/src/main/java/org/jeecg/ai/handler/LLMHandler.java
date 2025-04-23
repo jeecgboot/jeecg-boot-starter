@@ -58,7 +58,7 @@ public class LLMHandler {
      * @date 2025/3/12 15:22
      */
     private AIParams ensureParams(AIParams params) {
-        if (null == params || StringUtils.isEmpty(params.getApiKey())) {
+        if (null == params || StringUtils.isEmpty(params.getBaseUrl())) {
             params = getDefaultModel(params);
         }
         if (null == params) {
