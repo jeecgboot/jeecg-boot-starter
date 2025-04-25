@@ -79,3 +79,7 @@ jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/ai/handler/LLMHandler.java
 jeecg-boot-starter-chatgpt/src/main/resource/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
 jeecg-boot-starter-chatgpt/src/main/resource/META-INF/spring.factories
 ---author:chenrui---date:2025/4/22-----for:[issues/8155]【AI】ollama模型无法使用---
+
+---author:chenrui---date:2025/4/25-----for:[QQYUN-12203]AI 聊天，超时或者服务器报错，给个友好提示---
+src/main/java/org/jeecg/ai/factory/AiModelFactory.java
+---author:chenrui---date:2025/4/25-----for:[QQYUN-12203]AI 聊天，超时或者服务器报错，给个友好提示---
