@@ -102,9 +102,7 @@ public class AiModelFactory {
                         // 频率惩罚 0-1 step 0.1
                         .frequencyPenalty(frequencyPenalty)
                         .timeout(Duration.ofSeconds(timeout))
-                        .maxRetries(0)
-                        .logRequests(true)
-                        .logResponses(true);
+                        .maxRetries(0);
                 if (null != maxTokens) {
                     openAIBuilder.maxTokens(maxTokens);
                 }
@@ -261,9 +259,7 @@ public class AiModelFactory {
                         .presencePenalty(presencePenalty)
                         // 频率惩罚 0-1 step 0.1
                         .frequencyPenalty(frequencyPenalty)
-                        .timeout(Duration.ofSeconds(timeout))
-                        .logRequests(true)
-                        .logResponses(true);
+                        .timeout(Duration.ofSeconds(timeout));
                 if (null != maxTokens) {
                     openAIBuilder.maxTokens(maxTokens);
                 }
@@ -403,8 +399,6 @@ public class AiModelFactory {
                         .modelName(modelName)
                         .timeout(Duration.ofSeconds(timeout))
                         .maxRetries(0)
-                        .logRequests(true)
-                        .logResponses(true)
                         .build();
                 break;
             case AIMODEL_TYPE_ZHIPU:
