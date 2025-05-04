@@ -43,6 +43,7 @@ public class SpringContextHolder implements ApplicationContextAware {
     /**
      * 从静态变量ApplicationContext中取得Bean, 自动转型为所赋值对象的类型.
      */
+    private static boolean isWarningLogged = false; // 标志变量
     public static <T> T getHandler(String name, Class<T> cls) {
         T t = null;
         if (ObjectUtil.isNotEmpty(name)) {
@@ -50,7 +51,10 @@ public class SpringContextHolder implements ApplicationContextAware {
             try {
                 t = applicationContext.getBean(name, cls);
             } catch (Exception e) {
-                log.warn("Customize redis listener handle [ " + name + " ], does not exist！");
+                if (!isWarningLogged) { // 检查标志变量
+                    log.warn("Customize redis listener handle [ " + name + " ], does not exist！");
+                    isWarningLogged = true; // 设置标志，确保只记录一次
+                }
             }
         }
         return t;
