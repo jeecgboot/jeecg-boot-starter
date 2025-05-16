@@ -39,7 +39,7 @@ public @interface JLock {
      *
      * @return int
      */
-    long expireSeconds() default 30000L;
+    long expireSeconds() default -1L;
 
     /**
      * 等待加锁超时时间,默认10000毫秒 -1 则表示一直等待

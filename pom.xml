@@ -13,7 +13,7 @@
     <artifactId>jeecg-boot-starter3</artifactId>
     <packaging>pom</packaging>
     <name>JEECG BOOT STARTER ${project.version}</name>
-    <version>3.7.3</version>
+    <version>3.8.0</version>
 
     <developers>
         <developer>
@@ -82,11 +82,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- Lombok -->

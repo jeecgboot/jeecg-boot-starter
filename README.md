@@ -1,12 +1,12 @@
 # jeecg-boot-starter
-当前最新版本： 3.7.3（发布日期：2025-02-05）
+当前最新版本： 3.8.0（发布日期：2025-04-09）
 
 ### 介绍
 > jeecg-boot的starter启动模块独立出来，简化项目，便于维护。
 
 ### 软件架构
-  - spring-cloud：2021.0.3
-  - spring-cloud-alibaba：2021.0.1.0
+  - spring-cloud：2021.0.8
+  - spring-cloud-alibaba：2021.0.6.2
 
 
 
