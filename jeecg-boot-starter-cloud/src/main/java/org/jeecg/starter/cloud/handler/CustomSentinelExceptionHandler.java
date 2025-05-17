@@ -1,16 +1,15 @@
 package org.jeecg.starter.cloud.handler;
 
-import com.alibaba.csp.sentinel.adapter.spring.webmvc.callback.BlockExceptionHandler;
+import com.alibaba.csp.sentinel.adapter.spring.webmvc_v6x.callback.BlockExceptionHandler;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.authority.AuthorityException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
 import com.alibaba.csp.sentinel.slots.block.flow.param.ParamFlowException;
 import com.alibaba.csp.sentinel.slots.system.SystemBlockException;
-import org.springframework.context.annotation.Configuration;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @Description: 全局Sentinel自定义信息处理(需要启动Sentinel客户端)
@@ -22,7 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class CustomSentinelExceptionHandler implements BlockExceptionHandler {
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, BlockException ex) throws Exception {
+    public void handle(HttpServletRequest request, HttpServletResponse response, String s, BlockException ex) throws Exception {
 
         String msg = null;
 
