@@ -1,11 +1,10 @@
 package org.jeecg.starter.cloud.interceptor;
 
 import com.alibaba.cloud.commons.lang.StringUtils;
-import com.alibaba.csp.sentinel.adapter.spring.webmvc.callback.RequestOriginParser;
+import com.alibaba.csp.sentinel.adapter.spring.webmvc_v6x.callback.RequestOriginParser;
+import jakarta.servlet.http.HttpServletRequest;
 import org.jeecg.starter.cloud.util.IpUtils;
 import org.springframework.stereotype.Component;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 【示例】sentinel ip和参数授权规则拦截器(黑名单白名单)
