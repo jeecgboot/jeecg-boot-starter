@@ -87,6 +87,7 @@ public class LLMHandler {
         params.setBaseUrl(aiChatProperties.getApiHost());
         params.setApiKey(aiChatProperties.getApiKey());
         params.setSecretKey(aiChatProperties.getCredential().getSecretKey());
+        params.setTimeout(aiChatProperties.getTimeout());
         return params;
     }
 
