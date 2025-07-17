@@ -47,6 +47,9 @@ public class RedisConfig extends CachingConfigurerSupport {
 	@Resource
 	private LettuceConnectionFactory lettuceConnectionFactory;
 
+	@Resource
+	private JeecgRedisCacheTtls redisCacheProperties;
+
 	/**
 	 * RedisTemplate配置
 	 * @param lettuceConnectionFactory
@@ -92,18 +95,6 @@ public class RedisConfig extends CachingConfigurerSupport {
 		RedisCacheWriter writer = new JeecgRedisCacheWriter(factory, Duration.ofMillis(50L));
 		//RedisCacheWriter.lockingRedisCacheWriter(factory);
 		// 创建默认缓存配置对象
-		/* 默认配置，设置缓存有效期 1小时*/
-		//RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1));
-		// 自定义配置test:demo 的超时时间为 5分钟
-//		RedisCacheManager cacheManager = RedisCacheManager.builder(writer).cacheDefaults(redisCacheConfiguration)
-//            .withInitialCacheConfigurations(singletonMap(CacheConstant.SYS_DICT_TABLE_CACHE,
-//                RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10)).disableCachingNullValues()
-//                    .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))))
-//				.withInitialCacheConfigurations(singletonMap(CacheConstant.TEST_DEMO_CACHE, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues()))
-//				.withInitialCacheConfigurations(singletonMap(CacheConstant.PLUGIN_MALL_RANKING, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues()))
-//				.withInitialCacheConfigurations(singletonMap(CacheConstant.PLUGIN_MALL_PAGE_LIST, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues()))
-//				.transactionAware().build();
-
 		Map<String, RedisCacheConfiguration> initialCaches = new HashMap<>();
 		initialCaches.put(CacheConstant.SYS_DICT_TABLE_CACHE, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10)).disableCachingNullValues()
 				.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer)));
@@ -111,6 +102,15 @@ public class RedisConfig extends CachingConfigurerSupport {
 		initialCaches.put(CacheConstant.PLUGIN_MALL_RANKING, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues());
 		initialCaches.put(CacheConstant.PLUGIN_MALL_PAGE_LIST, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues());
 
+		// 设置自定义缓存
+		redisCacheProperties.getCacheTtls().forEach((cacheName, ttl) -> {
+			log.info("自定义缓存配置，cacheKey:{}, 缓存时间:{} 秒",cacheName,ttl);
+			initialCaches.put(cacheName, RedisCacheConfiguration.defaultCacheConfig()
+					.entryTtl(Duration.ofSeconds(ttl))
+					.disableCachingNullValues()
+					.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer)));
+		});
+		
 		RedisCacheManager cacheManager = new RedisConfigCacheManager(writer, redisCacheConfiguration, initialCaches);
 		cacheManager.setTransactionAware(true);
 		//update-end-author:taoyan date:20210316 for:注解CacheEvict根据key删除redis支持通配符*
