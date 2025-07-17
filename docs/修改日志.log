@@ -84,6 +84,10 @@ jeecg-boot-starter-chatgpt/src/main/resource/META-INF/spring.factories
 src/main/java/org/jeecg/ai/factory/AiModelFactory.java
 ---author:chenrui---date:2025/4/25-----for:[QQYUN-12203]AI 聊天，超时或者服务器报错，给个友好提示---
 
+---author:chenrui---date:2025/5/29-----for:[issues/8265]默认模型支持超时时间设置---
+src/main/java/org/jeecg/ai/handler/LLMHandler.java
+---author:chenrui---date:2025/5/29-----for:[issues/8265]默认模型支持超时时间设置---
+
 --author:scott---date:2025-07-17---for:redis缓存扩展用户可以自定义缓存 --
 org/jeecg/common/modules/redis/config/JeecgRedisCacheTtls.java
 org/jeecg/common/modules/redis/config/RedisConfig.java
