@@ -87,9 +87,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 															//.disableCachingNullValues();
 
 		// 以锁写入的方式创建RedisCacheWriter对象
-		//update-begin-author:taoyan date:20210316 for:注解CacheEvict根据key删除redis支持通配符*
 		RedisCacheWriter writer = new JeecgRedisCacheWriter(factory, Duration.ofMillis(50L));
-		//RedisCacheWriter.lockingRedisCacheWriter(factory);
 		// 创建默认缓存配置对象
 		Map<String, RedisCacheConfiguration> initialCaches = new HashMap<>();
 		initialCaches.put(CacheConstant.SYS_DICT_TABLE_CACHE, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10)).disableCachingNullValues()
@@ -97,6 +95,8 @@ public class RedisConfig extends CachingConfigurerSupport {
 		initialCaches.put(CacheConstant.TEST_DEMO_CACHE, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)).disableCachingNullValues());
 		initialCaches.put(CacheConstant.PLUGIN_MALL_RANKING, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues());
 		initialCaches.put(CacheConstant.PLUGIN_MALL_PAGE_LIST, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24)).disableCachingNullValues());
+		// 流程运行时数据，缓存有效期1年
+		initialCaches.put(CacheConstant.FLOW_RUNTIME_DATA_PREFIX, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(365)).disableCachingNullValues());
 
 		// 设置自定义缓存
 		redisCacheProperties.getCacheTtls().forEach((cacheName, ttl) -> {
