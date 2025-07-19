@@ -76,7 +76,9 @@ public interface CacheConstant {
 	 */
 	public static final String PLUGIN_MALL_PAGE_LIST = "pluginMall::queryPageList";
 
-
+	//流程运行时数据缓存前缀
+	String FLOW_RUNTIME_DATA_PREFIX = "flow:runtimeData";
+	
 	/**
 	 * online列表页配置信息缓存key
 	 */
