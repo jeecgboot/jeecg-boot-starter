@@ -10,7 +10,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "jeecg.redis")
 public class JeecgRedisCacheTtls {
     /**
-     * 缓存配置
+     * 自定义缓存配置
      * key: 缓存名称
      * value: 缓存过期时间，单位秒
      */

@@ -13,7 +13,7 @@
     <artifactId>jeecg-boot-starter3</artifactId>
     <packaging>pom</packaging>
     <name>JEECG BOOT STARTER ${project.version}</name>
-    <version>3.8.1</version>
+    <version>3.8.2</version>
 
     <developers>
         <developer>
@@ -296,27 +296,17 @@
                     </plugin>
                     <!--Nexus Staging Maven插件是将组件部署到OSS并将其发布到Central Repository的推荐方法-->
                     <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.7.0</version>
                         <extensions>true</extensions>
                         <configuration>
-                            <serverId>oss</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                            <!-- 注意：这类必须要和Maven配置环境中的server id对应上 -->
+                            <publishingServerId>oss</publishingServerId>
                         </configuration>
                     </plugin>
                 </plugins>
             </build>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>oss</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-                </snapshotRepository>
-                <repository>
-                    <id>oss</id>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-                </repository>
-            </distributionManagement>
         </profile>
     </profiles>
     

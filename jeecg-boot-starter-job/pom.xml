@@ -5,10 +5,11 @@
     <parent>
         <artifactId>jeecg-boot-starter3</artifactId>
         <groupId>org.jeecgframework.boot</groupId>
-        <version>3.8.1</version>
+        <version>3.8.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jeecg-boot-starter3-job</artifactId>
+    <name>jeecg-boot-starter3-job</name>
     <description>jeecg-boot-starter-定时任务</description>
     <dependencies>
         <dependency>
