@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jeecg-boot-starter-shardingsphere</artifactId>
+    <name>jeecg-boot-starter-shardingsphere</name>
     <description>分库分表</description>
     <dependencies>
         <!-- 动态数据源 -->

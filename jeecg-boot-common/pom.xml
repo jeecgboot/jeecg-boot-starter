@@ -9,6 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
     <description>公共模块</description>
     <artifactId>jeecg-boot-common</artifactId>
+    <name>jeecg-boot-common</name>
 
     <dependencies>
         <!--集成springmvc框架 -->

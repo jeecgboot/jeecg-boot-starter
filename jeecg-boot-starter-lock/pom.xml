@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jeecg-boot-starter-lock</artifactId>
+    <name>jeecg-boot-starter-lock</name>
     <description>jeecg-boot-starter-分布式锁</description>
     <dependencies>
         <!--共通依赖-->
