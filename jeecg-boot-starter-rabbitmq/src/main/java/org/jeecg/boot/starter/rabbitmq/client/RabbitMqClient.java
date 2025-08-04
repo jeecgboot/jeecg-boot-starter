@@ -21,6 +21,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Method;
@@ -34,6 +35,7 @@ import java.util.Properties;
  * 消息队列客户端
  */
 @Slf4j
+@Lazy(false)
 @Configuration
 public class RabbitMqClient {
 

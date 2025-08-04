@@ -5,13 +5,17 @@ import cn.hutool.core.util.ObjectUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 /**
  * 以静态变量保存Spring ApplicationContext, 可在任何代码任何地方任何时候中取出ApplicaitonContext.
  *
  * @author zyf
  */
+@Lazy(false)
 @Slf4j
+@Component
 public class SpringContextHolder implements ApplicationContextAware {
     private static ApplicationContext applicationContext;
 
@@ -78,7 +82,7 @@ public class SpringContextHolder implements ApplicationContextAware {
 
     private static void checkApplicationContext() {
         if (applicationContext == null) {
-            throw new IllegalStateException("applicaitonContext未注入,请在applicationContext.xml中定义SpringContextHolder");
+            throw new IllegalStateException("applicationContext未注入，请在applicationContext.xml中定义SpringContextHolder");
         }
     }
 
