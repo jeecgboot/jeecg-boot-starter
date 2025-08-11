@@ -1,10 +1,10 @@
 package org.jeecg.boot.shardingsphere.config;
 
 import com.baomidou.dynamic.datasource.DynamicRoutingDataSource;
-import com.baomidou.dynamic.datasource.creator.DataSourceProperty;
 import com.baomidou.dynamic.datasource.creator.DefaultDataSourceCreator;
 import com.baomidou.dynamic.datasource.provider.AbstractDataSourceProvider;
 import com.baomidou.dynamic.datasource.provider.DynamicDataSourceProvider;
+import com.baomidou.dynamic.datasource.spring.boot.autoconfigure.DataSourceProperty;
 import com.baomidou.dynamic.datasource.spring.boot.autoconfigure.DynamicDataSourceAutoConfiguration;
 import com.baomidou.dynamic.datasource.spring.boot.autoconfigure.DynamicDataSourceProperties;
 import org.springframework.boot.SpringBootConfiguration;
@@ -51,7 +51,7 @@ public class DataSourceConfiguration {
     @Bean
     public DynamicDataSourceProvider dynamicDataSourceProvider() {
         Map<String, DataSourceProperty> datasourceMap = dynamicDataSourceProperties.getDatasource();
-        return new AbstractDataSourceProvider(dataSourceCreator) {
+        return new AbstractDataSourceProvider() {
             @Override
             public Map<String, DataSource> loadDataSources() {
                 Map<String, DataSource> dataSourceMap = createDataSourceMap(datasourceMap);
