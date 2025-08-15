@@ -5,17 +5,17 @@ import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.*;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.output.Response;
 import dev.langchain4j.rag.AugmentationRequest;
 import dev.langchain4j.rag.AugmentationResult;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.service.AiServiceContext;
 import dev.langchain4j.service.AiServiceTokenStream;
+import dev.langchain4j.service.AiServiceTokenStreamParameters;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.output.ServiceOutputParser;
 import dev.langchain4j.service.tool.ToolExecutor;
@@ -112,7 +112,7 @@ public class LLMHandler {
         params = ensureParams(params);
 
         AiModelOptions modelOp = params.toModelOptions();
-        ChatLanguageModel chatModel = AiModelFactory.createChatModel(modelOp);
+        ChatModel chatModel = AiModelFactory.createChatModel(modelOp);
 
         // 整理消息
         CollateMsgResp chatMessage = collateMessage(messages, params);
@@ -131,7 +131,8 @@ public class LLMHandler {
         String resp = "";
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
         while (true) {
-            ChatRequest chatRequest = ChatRequest.builder().messages(chatMessage.chatMemory.messages())
+            ChatRequest chatRequest = ChatRequest.builder()
+                    .messages(chatMessage.chatMemory.messages())
                     .toolSpecifications(toolSpecifications)
                     .build();
 
@@ -142,7 +143,7 @@ public class LLMHandler {
 
             // 没有工具调用，则解析文本并结束
             if (aiMessage.toolExecutionRequests() == null || aiMessage.toolExecutionRequests().isEmpty()) {
-                resp = (String) serviceOutputParser.parse(new Response<>(response.aiMessage()), String.class);
+                resp = (String) serviceOutputParser.parse(response, String.class);
                 break;
             }
 
@@ -181,7 +182,7 @@ public class LLMHandler {
 
         // model
         AiModelOptions modelOp = params.toModelOptions();
-        StreamingChatLanguageModel streamingChatModel = AiModelFactory.createStreamingChatModel(modelOp);
+        StreamingChatModel streamingChatModel = AiModelFactory.createStreamingChatModel(modelOp);
 
         // 工具定义
         List<ToolSpecification> toolSpecifications = new ArrayList<>();
@@ -199,13 +200,14 @@ public class LLMHandler {
         context.streamingChatModel = streamingChatModel;
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
         return new AiServiceTokenStream(
-                chatMessage.chatMemory.messages(),
-                toolSpecifications,
-                toolExecutors,
-                chatMessage.augmentationResult != null ? chatMessage.augmentationResult.contents() : null,
-                context,
-                "default"
-        );
+                AiServiceTokenStreamParameters.builder()
+                        .messages(chatMessage.chatMemory.messages())
+                        .retrievedContents(chatMessage.augmentationResult != null ? chatMessage.augmentationResult.contents() : null)
+                        .toolSpecifications(toolSpecifications)
+                        .toolExecutors(toolExecutors)
+                        .context(context)
+                        .memoryId("default")
+                        .build());
     }
 
     /**
