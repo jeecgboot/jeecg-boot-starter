@@ -3,15 +3,16 @@ package org.jeecg.ai.handler;
 import dev.langchain4j.data.message.*;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
-import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.rag.AugmentationRequest;
 import dev.langchain4j.rag.AugmentationResult;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.service.AiServiceContext;
 import dev.langchain4j.service.AiServiceTokenStream;
+import dev.langchain4j.service.AiServiceTokenStreamParameters;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.output.ServiceOutputParser;
 import lombok.extern.slf4j.Slf4j;
@@ -109,13 +110,13 @@ public class LLMHandler {
         params = ensureParams(params);
 
         AiModelOptions modelOp = params.toModelOptions();
-        ChatLanguageModel chatModel = AiModelFactory.createChatModel(modelOp);
+        ChatModel chatModel = AiModelFactory.createChatModel(modelOp);
 
         // 整理消息
         CollateMsgResp chatMessage = collateMessage(messages, params);
 
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
-        Response<AiMessage> response = chatModel.generate(chatMessage.chatMemory.messages());
+        ChatResponse response = chatModel.chat(chatMessage.chatMemory.messages());
         String resp = (String) serviceOutputParser.parse(response, String.class);
         log.info("[LLMHandler] Received the AI's response . message: {}", resp);
         return resp;
@@ -138,19 +139,19 @@ public class LLMHandler {
 
         // model
         AiModelOptions modelOp = params.toModelOptions();
-        StreamingChatLanguageModel streamingChatModel = AiModelFactory.createStreamingChatModel(modelOp);
+        StreamingChatModel streamingChatModel = AiModelFactory.createStreamingChatModel(modelOp);
 
         CollateMsgResp chatMessage = collateMessage(messages, params);
         AiServiceContext context = new AiServiceContext(AiStreamChatAssistant.class);
         context.streamingChatModel = streamingChatModel;
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
         return new AiServiceTokenStream(
-                chatMessage.chatMemory.messages(),
-                null,
-                null,
-                chatMessage.augmentationResult != null ? chatMessage.augmentationResult.contents() : null,
-                context,
-                "default"
+                AiServiceTokenStreamParameters.builder()
+                        .messages(chatMessage.chatMemory.messages())
+                        .retrievedContents(chatMessage.augmentationResult != null ? chatMessage.augmentationResult.contents() : null)
+                        .context(context)
+                        .memoryId("default")
+                        .build()
         );
     }
 
