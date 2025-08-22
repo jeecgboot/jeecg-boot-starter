@@ -92,3 +92,11 @@ src/main/java/org/jeecg/ai/handler/LLMHandler.java
 org/jeecg/common/modules/redis/config/JeecgRedisCacheTtls.java
 org/jeecg/common/modules/redis/config/RedisConfig.java
 --author:scott---date:2025-07-17---for:redis缓存扩展用户可以自定义缓存 --
+
+---author:chenrui---date:2025/8/15-----for:langchain4j升级1.3.0 && 添加mcp单元测试---
+docs/修改日志.log
+jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/ai/factory/AiModelFactory.java
+jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/ai/handler/LLMHandler.java
+jeecg-boot-starter-chatgpt/src/test/java/org/jeecg/ai/handler/LLMTest.java
+jeecg-boot-starter-chatgpt/pom.xml
+---author:chenrui---date:2025/8/15-----for:langchain4j升级1.3.0 && 添加mcp单元测试---
