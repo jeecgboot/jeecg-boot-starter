@@ -1,13 +1,14 @@
 package org.jeecg.ai.handler;
 
+import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.rag.query.router.QueryRouter;
+import dev.langchain4j.service.tool.ToolExecutor;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jeecg.ai.factory.AiModelOptions;
 
-import java.util.List;
+import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -77,6 +78,11 @@ public class AIParams {
      * 超时时间
      */
     Integer timeout;
+
+    /**
+     * FunctionCall工具集合
+     */
+    Map<ToolSpecification, ToolExecutor> tools;
 
     public AiModelOptions toModelOptions() {
         return AiModelOptions.builder()
