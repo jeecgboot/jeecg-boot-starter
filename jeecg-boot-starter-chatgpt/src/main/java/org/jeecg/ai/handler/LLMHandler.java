@@ -1,10 +1,14 @@
 package org.jeecg.ai.handler;
 
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
+import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.*;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.rag.AugmentationRequest;
 import dev.langchain4j.rag.AugmentationResult;
@@ -14,6 +18,7 @@ import dev.langchain4j.service.AiServiceContext;
 import dev.langchain4j.service.AiServiceTokenStream;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.output.ServiceOutputParser;
+import dev.langchain4j.service.tool.ToolExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.jeecg.ai.assistant.AiStreamChatAssistant;
@@ -21,9 +26,7 @@ import org.jeecg.ai.factory.AiModelFactory;
 import org.jeecg.ai.factory.AiModelOptions;
 import org.jeecg.ai.prop.AiChatProperties;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -114,9 +117,49 @@ public class LLMHandler {
         // 整理消息
         CollateMsgResp chatMessage = collateMessage(messages, params);
 
+        // 工具定义
+        List<ToolSpecification> toolSpecifications = new ArrayList<>();
+        // 工具执行器
+        Map<String, ToolExecutor> toolExecutors = new HashMap<>();
+        if(null != params.getTools() && !params.getTools().isEmpty()) {
+            toolSpecifications = new ArrayList<>(params.getTools().keySet());
+            params.getTools().forEach((tool,executor) -> {
+                toolExecutors.put(tool.name(),executor);
+            });
+        }
+
+        String resp = "";
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
-        Response<AiMessage> response = chatModel.generate(chatMessage.chatMemory.messages());
-        String resp = (String) serviceOutputParser.parse(response, String.class);
+        while (true) {
+            ChatRequest chatRequest = ChatRequest.builder().messages(chatMessage.chatMemory.messages())
+                    .toolSpecifications(toolSpecifications)
+                    .build();
+
+            ChatResponse response = chatModel.chat(chatRequest);
+
+            AiMessage aiMessage = response.aiMessage();
+            chatMessage.chatMemory.add(aiMessage);
+
+            // 没有工具调用，则解析文本并结束
+            if (aiMessage.toolExecutionRequests() == null || aiMessage.toolExecutionRequests().isEmpty()) {
+                resp = (String) serviceOutputParser.parse(new Response<>(response.aiMessage()), String.class);
+                break;
+            }
+
+            // 有工具调用：逐个执行并将结果以 ToolExecutionResultMessage 追加到历史
+            for (ToolExecutionRequest toolExecReq : aiMessage.toolExecutionRequests()) {
+                ToolExecutor executor = toolExecutors.get(toolExecReq.name());
+                if (executor == null) {
+                    throw new IllegalStateException("未找到工具执行器: " + toolExecReq.name());
+                }
+                log.info("[LLMHandler] Executing tool: {} ", toolExecReq.name());
+                String result = executor.execute(toolExecReq, chatMessage.chatMemory.id());
+                ToolExecutionResultMessage resultMsg = ToolExecutionResultMessage.from(toolExecReq, result);
+                chatMessage.chatMemory.add(resultMsg);
+            }
+        }
+
+
         log.info("[LLMHandler] Received the AI's response . message: {}", resp);
         return resp;
     }
@@ -140,14 +183,25 @@ public class LLMHandler {
         AiModelOptions modelOp = params.toModelOptions();
         StreamingChatLanguageModel streamingChatModel = AiModelFactory.createStreamingChatModel(modelOp);
 
+        // 工具定义
+        List<ToolSpecification> toolSpecifications = new ArrayList<>();
+        // 工具执行器
+        Map<String, ToolExecutor> toolExecutors = new HashMap<>();
+        if(null != params.getTools() && !params.getTools().isEmpty()) {
+            toolSpecifications = new ArrayList<>(params.getTools().keySet());
+            params.getTools().forEach((tool,executor) -> {
+                toolExecutors.put(tool.name(),executor);
+            });
+        }
+
         CollateMsgResp chatMessage = collateMessage(messages, params);
         AiServiceContext context = new AiServiceContext(AiStreamChatAssistant.class);
         context.streamingChatModel = streamingChatModel;
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
         return new AiServiceTokenStream(
                 chatMessage.chatMemory.messages(),
-                null,
-                null,
+                toolSpecifications,
+                toolExecutors,
                 chatMessage.augmentationResult != null ? chatMessage.augmentationResult.contents() : null,
                 context,
                 "default"
