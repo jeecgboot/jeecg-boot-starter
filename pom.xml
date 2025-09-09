@@ -4,16 +4,16 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.5</version>
+        <version>3.5.5</version>
         <relativePath/>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.jeecgframework.boot</groupId>
-    <artifactId>jeecg-boot-starter3</artifactId>
+    <groupId>org.jeecgframework.boot3</groupId>
+    <artifactId>jeecg-boot-starter</artifactId>
     <packaging>pom</packaging>
     <name>JEECG BOOT STARTER ${project.version}</name>
-    <version>3.8.3</version>
+    <version>3.8.5</version>
 
     <developers>
         <developer>
@@ -34,8 +34,8 @@
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hutool.version>5.8.25</hutool.version>
-        <commons-beanutils.version>1.9.4</commons-beanutils.version>
-        <guava.version>29.0-jre</guava.version>
+        <commons-beanutils.version>1.11.0</commons-beanutils.version>
+        <guava.version>32.1.3-jre</guava.version>
         <!-- chatGpt -->
         <chat-gpt-java.varsion>1.1.5</chat-gpt-java.varsion>
         <commons.version>2.6</commons.version>
@@ -95,8 +95,8 @@
         <dependencies>
             <!-- jeecg-boot-common【原名：jeecg-boot-base-tools】-->
             <dependency>
-                <groupId>org.jeecgframework.boot</groupId>
-                <artifactId>jeecg-boot-common3</artifactId>
+                <groupId>org.jeecgframework.boot3</groupId>
+                <artifactId>jeecg-boot-common</artifactId>
                 <version>${jeecgboot.version}</version>
             </dependency>
             <!-- hutool工具类-->
@@ -137,7 +137,7 @@
             </dependency>
             <!-- jeecg-boot-aiChat starter-->
             <dependency>
-                <groupId>org.jeecgframework.boot</groupId>
+                <groupId>org.jeecgframework.boot3</groupId>
                 <artifactId>jeecg-boot-starter-chatgpt</artifactId>
                 <version>${jeecgboot.version}</version>
             </dependency>
@@ -166,8 +166,8 @@
             </dependency>
             <!--rabbitmq消息队列-->
             <dependency>
-                <groupId>org.jeecgframework.boot</groupId>
-                <artifactId>jeecg-boot-starter3-rabbitmq</artifactId>
+                <groupId>org.jeecgframework.boot3</groupId>
+                <artifactId>jeecg-boot-starter-rabbitmq</artifactId>
                 <version>${jeecgboot.version}</version>
             </dependency>
             <!-- 微服务 end -->

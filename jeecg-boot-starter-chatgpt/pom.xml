@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>jeecg-boot-starter3</artifactId>
-        <groupId>org.jeecgframework.boot</groupId>
-        <version>3.8.3</version>
+        <artifactId>jeecg-boot-starter</artifactId>
+        <groupId>org.jeecgframework.boot3</groupId>
+        <version>3.8.5</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>jeecg-boot-starter3-chatgpt</artifactId>
-    <name>jeecg-boot-starter3-chatgpt</name>
+    <artifactId>jeecg-boot-starter-chatgpt</artifactId>
+    <name>jeecg-boot-starter-chatgpt</name>
 
     <properties>
         <langchain4j.version>0.35.0</langchain4j.version>
