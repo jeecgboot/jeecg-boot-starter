@@ -2,6 +2,7 @@ package org.jeecg.boot.starter.rabbitmq.client;
 
 
 import cn.hutool.core.util.ObjectUtil;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.boot.starter.rabbitmq.event.EventObj;
 import org.jeecg.boot.starter.rabbitmq.event.JeecgRemoteApplicationEvent;
@@ -59,7 +60,7 @@ public class RabbitMqClient {
     private ApplicationContext applicationContext;
 
 
-    @Bean
+    @PostConstruct
     public void initQueue() {
         Map<String, Object> beansWithRqbbitComponentMap = this.applicationContext.getBeansWithAnnotation(RabbitComponent.class);
         Class<? extends Object> clazz = null;
