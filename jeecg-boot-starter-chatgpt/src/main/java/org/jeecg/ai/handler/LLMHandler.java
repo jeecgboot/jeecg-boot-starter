@@ -9,6 +9,7 @@ import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.rag.AugmentationRequest;
 import dev.langchain4j.rag.AugmentationResult;
@@ -130,34 +131,42 @@ public class LLMHandler {
 
         String resp = "";
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
-        while (true) {
-            ChatRequest chatRequest = ChatRequest.builder().messages(chatMessage.chatMemory.messages())
-                    .toolSpecifications(toolSpecifications)
-                    .build();
+        //update-begin---author:chenrui ---date:20251013  for：[issues/8906]0.35中智谱等模型不支持工具调用------------
+        // 0.35版本langchain中只有OpenAiChatModel支持工具调用，其他模型只能直接问答
+        if(chatModel instanceof OpenAiChatModel){
+            while (true) {
+                ChatRequest chatRequest = ChatRequest.builder().messages(chatMessage.chatMemory.messages())
+                        .toolSpecifications(toolSpecifications)
+                        .build();
 
-            ChatResponse response = chatModel.chat(chatRequest);
+                ChatResponse response = chatModel.chat(chatRequest);
 
-            AiMessage aiMessage = response.aiMessage();
-            chatMessage.chatMemory.add(aiMessage);
+                AiMessage aiMessage = response.aiMessage();
+                chatMessage.chatMemory.add(aiMessage);
 
-            // 没有工具调用，则解析文本并结束
-            if (aiMessage.toolExecutionRequests() == null || aiMessage.toolExecutionRequests().isEmpty()) {
-                resp = (String) serviceOutputParser.parse(new Response<>(response.aiMessage()), String.class);
-                break;
-            }
-
-            // 有工具调用：逐个执行并将结果以 ToolExecutionResultMessage 追加到历史
-            for (ToolExecutionRequest toolExecReq : aiMessage.toolExecutionRequests()) {
-                ToolExecutor executor = toolExecutors.get(toolExecReq.name());
-                if (executor == null) {
-                    throw new IllegalStateException("未找到工具执行器: " + toolExecReq.name());
+                // 没有工具调用，则解析文本并结束
+                if (aiMessage.toolExecutionRequests() == null || aiMessage.toolExecutionRequests().isEmpty()) {
+                    resp = (String) serviceOutputParser.parse(new Response<>(response.aiMessage()), String.class);
+                    break;
                 }
-                log.info("[LLMHandler] Executing tool: {} ", toolExecReq.name());
-                String result = executor.execute(toolExecReq, chatMessage.chatMemory.id());
-                ToolExecutionResultMessage resultMsg = ToolExecutionResultMessage.from(toolExecReq, result);
-                chatMessage.chatMemory.add(resultMsg);
+
+                // 有工具调用：逐个执行并将结果以 ToolExecutionResultMessage 追加到历史
+                for (ToolExecutionRequest toolExecReq : aiMessage.toolExecutionRequests()) {
+                    ToolExecutor executor = toolExecutors.get(toolExecReq.name());
+                    if (executor == null) {
+                        throw new IllegalStateException("未找到工具执行器: " + toolExecReq.name());
+                    }
+                    log.info("[LLMHandler] Executing tool: {} ", toolExecReq.name());
+                    String result = executor.execute(toolExecReq, chatMessage.chatMemory.id());
+                    ToolExecutionResultMessage resultMsg = ToolExecutionResultMessage.from(toolExecReq, result);
+                    chatMessage.chatMemory.add(resultMsg);
+                }
             }
+        }else {
+            Response<AiMessage> response = chatModel.generate(chatMessage.chatMemory.messages());
+            resp = (String) serviceOutputParser.parse(response, String.class);
         }
+        //update-end---author:chenrui ---date:20251013  for：[issues/8906]0.35中智谱等模型不支持工具调用------------
 
 
         log.info("[LLMHandler] Received the AI's response . message: {}", resp);

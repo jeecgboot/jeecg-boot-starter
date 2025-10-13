@@ -97,3 +97,7 @@ org/jeecg/common/modules/redis/config/RedisConfig.java
 src/main/java/org/jeecg/ai/handler/AIParams.java
 src/main/java/org/jeecg/ai/handler/LLMHandler.java
 ---author:chenrui---date:2025/8/27-----for:[QQYUN-13565]【AI助手】新增创建用户和查询用户的工具扩展---
+
+---author:chenrui---date:2025/10/13-----for:[issues/8906]0.35中智谱等模型不支持工具调用---
+jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/ai/handler/LLMHandler.java
+---author:chenrui---date:2025/10/13-----for:[issues/8906]0.35中智谱等模型不支持工具调用---
