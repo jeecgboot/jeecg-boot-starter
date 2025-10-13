@@ -1,21 +1,21 @@
 package org.jeecg.ai.factory;
 
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
-import dev.langchain4j.model.dashscope.QwenChatModel;
-import dev.langchain4j.model.dashscope.QwenEmbeddingModel;
-import dev.langchain4j.model.dashscope.QwenModelName;
-import dev.langchain4j.model.dashscope.QwenStreamingChatModel;
+import dev.langchain4j.community.model.dashscope.QwenChatModel;
+import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
+import dev.langchain4j.community.model.dashscope.QwenModelName;
+import dev.langchain4j.community.model.dashscope.QwenStreamingChatModel;
+import dev.langchain4j.community.model.qianfan.*;
+import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
+import dev.langchain4j.community.model.zhipu.ZhipuAiEmbeddingModel;
+import dev.langchain4j.community.model.zhipu.ZhipuAiStreamingChatModel;
+import dev.langchain4j.community.model.zhipu.chat.ChatCompletionModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 import dev.langchain4j.model.ollama.OllamaEmbeddingModel;
 import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
 import dev.langchain4j.model.openai.*;
-import dev.langchain4j.model.qianfan.*;
-import dev.langchain4j.model.zhipu.ZhipuAiChatModel;
-import dev.langchain4j.model.zhipu.ZhipuAiEmbeddingModel;
-import dev.langchain4j.model.zhipu.ZhipuAiStreamingChatModel;
-import dev.langchain4j.model.zhipu.chat.ChatCompletionModel;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,13 +63,13 @@ public class AiModelFactory {
      * @author chenrui
      * @date 2025/2/13 19:28
      */
-    public static ChatLanguageModel createChatModel(AiModelOptions options) {
+    public static ChatModel createChatModel(AiModelOptions options) {
         assertNotEmpty("请设置模型参数", options);
         assertNotEmpty("请选择AI模型供应商", options.getProvider());
         String cacheKey = options.toString();
         Object cachedModel = getCache(cacheKey);
         if (cachedModel != null) {
-            return (ChatLanguageModel) cachedModel;
+            return (ChatModel) cachedModel;
         }
         String apiKey = options.getApiKey();
         String secretKey = options.getSecretKey();
@@ -82,7 +82,7 @@ public class AiModelFactory {
         double repetitionPenalty = 1.0 + (presencePenalty + frequencyPenalty) / 2.0;
         int timeout = getInteger(options.getTimeout(),120);
         Integer maxTokens = options.getMaxTokens();
-        ChatLanguageModel chatModel = null;
+        ChatModel chatModel = null;
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
                 assertNotEmpty("apiKey不能为空", apiKey);
@@ -120,10 +120,8 @@ public class AiModelFactory {
                         // 多样性  0-1 step 0.1
                         .topP(topP)
                         .maxRetries(0)
-                        .callTimeout(Duration.ofSeconds(timeout))
                         .readTimeout(Duration.ofSeconds(timeout))
-                        .connectTimeout(Duration.ofSeconds(timeout))
-                        .writeTimeout(Duration.ofSeconds(timeout));
+                        .connectTimeout(Duration.ofSeconds(timeout));
                 if (null != maxTokens) {
                     zhipuBuilder.maxToken(maxTokens);
                 }
@@ -221,13 +219,13 @@ public class AiModelFactory {
      * @author chenrui
      * @date 2025/2/20 19:41
      */
-    public static StreamingChatLanguageModel createStreamingChatModel(AiModelOptions options) {
+    public static StreamingChatModel createStreamingChatModel(AiModelOptions options) {
         assertNotEmpty("请设置模型参数", options);
         assertNotEmpty("请选择AI模型供应商", options.getProvider());
         String cacheKey = "STEAM_" + options.toString();
         Object cachedModel = getCache(cacheKey);
         if (cachedModel != null) {
-            return (StreamingChatLanguageModel) cachedModel;
+            return (StreamingChatModel) cachedModel;
         }
         String apiKey = options.getApiKey();
         String secretKey = options.getSecretKey();
@@ -240,7 +238,7 @@ public class AiModelFactory {
         double repetitionPenalty = 1.0 + (presencePenalty + frequencyPenalty) / 2.0;
         int timeout = getInteger(options.getTimeout(),120);
         Integer maxTokens = options.getMaxTokens();
-        StreamingChatLanguageModel chatModel = null;
+        StreamingChatModel chatModel = null;
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
                 assertNotEmpty("apiKey不能为空", apiKey);
@@ -276,10 +274,8 @@ public class AiModelFactory {
                         .temperature(temperature)
                         // 多样性  0-1 step 0.1
                         .topP(topP)
-                        .callTimeout(Duration.ofSeconds(timeout))
                         .readTimeout(Duration.ofSeconds(timeout))
-                        .connectTimeout(Duration.ofSeconds(timeout))
-                        .writeTimeout(Duration.ofSeconds(timeout));
+                        .connectTimeout(Duration.ofSeconds(timeout));
                 if (null != maxTokens) {
                     zhipuBuilder.maxToken(maxTokens);
                 }
@@ -403,15 +399,13 @@ public class AiModelFactory {
                 break;
             case AIMODEL_TYPE_ZHIPU:
                 assertNotEmpty("apiKey不能为空", apiKey);
-                modelName = getString(modelName, dev.langchain4j.model.zhipu.embedding.EmbeddingModel.EMBEDDING_2.toString());
+                modelName = getString(modelName, dev.langchain4j.community.model.zhipu.embedding.EmbeddingModel.EMBEDDING_2.toString());
                 embeddingModel = ZhipuAiEmbeddingModel.builder()
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
                         .model(modelName)
-                        .callTimeout(Duration.ofSeconds(timeout))
                         .readTimeout(Duration.ofSeconds(timeout))
                         .connectTimeout(Duration.ofSeconds(timeout))
-                        .writeTimeout(Duration.ofSeconds(timeout))
                         // TODO author: chenrui for:临时写死,PGV不支持超过2000的向量索引date:2025/3/7
                         .dimensions(1536)
                         .maxRetries(0)
