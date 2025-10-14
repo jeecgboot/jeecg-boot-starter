@@ -151,6 +151,7 @@ public class AiModelFactory {
             case AIMODEL_TYPE_QWEN:
                 assertNotEmpty("apiKey不能为空", apiKey);
                 modelName = getString(modelName, QwenModelName.QWEN_PLUS);
+                boolean isMultiModal = modelName.contains("vl-") || modelName.contains("audio-") || modelName.contains("omni-");
                 QwenChatModel.QwenChatModelBuilder qwenBuilder = QwenChatModel.builder()
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
@@ -158,9 +159,13 @@ public class AiModelFactory {
                         // 温度 0-1 step 0.1
                         .temperature((float) temperature)
                         // 多样性  0-1 step 0.1
-                        .topP(topP)
-                        // 重复惩罚
-                        .repetitionPenalty((float) repetitionPenalty);
+                        .topP(topP);
+
+                if(!(modelName.contains("-vl-") || modelName.contains("-audio-") || modelName.contains("-omni-"))){
+                    // 非多模态模型才支持设置重复惩罚
+                    // 重复惩罚
+                    qwenBuilder.repetitionPenalty((float) repetitionPenalty);
+                }
                 if (null != maxTokens) {
                     qwenBuilder.maxTokens(maxTokens);
                 }
@@ -308,9 +313,12 @@ public class AiModelFactory {
                         // 温度 0-1 step 0.1
                         .temperature((float) temperature)
                         // 多样性  0-1 step 0.1
-                        .topP(topP)
-                        // 重复惩罚
-                        .repetitionPenalty((float) repetitionPenalty);
+                        .topP(topP);
+                if(!(modelName.contains("-vl-") || modelName.contains("-audio-") || modelName.contains("-omni-"))){
+                    // 非多模态模型才支持设置重复惩罚
+                    // 重复惩罚
+                    qwenBuilder.repetitionPenalty((float) repetitionPenalty);
+                }
                 if (null != maxTokens) {
                     qwenBuilder.maxTokens(maxTokens);
                 }
