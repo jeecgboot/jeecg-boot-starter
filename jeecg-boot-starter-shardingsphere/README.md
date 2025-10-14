@@ -70,6 +70,8 @@ spring:
 
 在 `src/main/resources/` 目录下创建 `sharding.yaml` 配置文件：
 
+> ⚠️ **重要提醒**: `dataSourceClassName` 必须使用 `com.zaxxer.hikari.HikariDataSource`，不能使用其他数据源（如 DruidDataSource），否则会导致分库分表功能异常！
+
 ```yaml
 # !!!数据源名称要和动态数据源中配置的名称一致
 databaseName: sharding-db
@@ -77,6 +79,7 @@ databaseName: sharding-db
 # 具体参看官网文档说明
 dataSources:
   db_0:
+    # ⚠️ 必须使用 HikariDataSource，不能使用 DruidDataSource 等其他数据源
     dataSourceClassName: com.zaxxer.hikari.HikariDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
     jdbcUrl: jdbc:mysql://jeecg-boot-mysql:3306/jeecg-boot?useSSL=false&useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
@@ -217,32 +220,28 @@ public class LogController {
 ### 重要提示
 
 1. **数据源名称一致性**: `sharding.yaml` 中的 `databaseName` 必须与 `application.yml` 中动态数据源的名称保持一致
-2. **分片键选择**: 选择合适的分片键（如 `log_type`）以确保数据均匀分布
-3. **表结构**: 需要在数据库中预先创建分片表（如 `sys_log0`, `sys_log1`）
+2. **数据源类型限制**: ⚠️ **必须使用 `com.zaxxer.hikari.HikariDataSource`**，不能使用 `com.alibaba.druid.pool.DruidDataSource` 等其他数据源，否则会导致分库分表功能异常
+3. **分片键选择**: 选择合适的分片键（如 `log_type`）以确保数据均匀分布
+4. **表结构**: 需要在数据库中预先创建分片表（如 `sys_log0`, `sys_log1`）
 
-### 多表分片示例
-
-如需对多个表进行分片，可在 `tables` 下添加更多配置：
+### 错误示例 ❌
 
 ```yaml
-rules:
-  - !SHARDING
-    tables:
-      sys_log:
-        # ...existing configuration...
-      sys_user:
-        actualDataNodes: db_0.sys_user$->{0..1}
-        tableStrategy:
-          standard:
-            shardingColumn: user_id
-            shardingAlgorithmName: user_mod
-    shardingAlgorithms:
-      user_inline:
-        # ...existing configuration...
-      user_mod:
-        type: MOD
-        props:
-          sharding-count: 2
+# 错误：使用 DruidDataSource 会导致分库分表功能异常
+dataSources:
+  db_0:
+    dataSourceClassName: com.alibaba.druid.pool.DruidDataSource  # ❌ 错误！
+    # ...其他配置
+```
+
+### 正确示例 ✅
+
+```yaml
+# 正确：必须使用 HikariDataSource
+dataSources:
+  db_0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource  # ✅ 正确！
+    # ...其他配置
 ```
 
 ## 故障排除
@@ -250,6 +249,7 @@ rules:
 1. **启动失败**: 检查 `sharding.yaml` 文件路径和格式
 2. **分片不生效**: 确认 `@DS("sharding-db")` 注解使用正确
 3. **SQL 执行异常**: 开启 `sql-show: true` 查看实际执行的 SQL
+4. **数据源异常**: 确认 `dataSourceClassName` 使用的是 `com.zaxxer.hikari.HikariDataSource`，而不是其他数据源类型
 
 ## 参考文献
 
