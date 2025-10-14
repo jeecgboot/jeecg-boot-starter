@@ -2,12 +2,17 @@ package org.jeecg.ai.handler;
 
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
+import dev.langchain4j.community.model.dashscope.QwenChatModel;
+import dev.langchain4j.community.model.dashscope.QwenChatRequestParameters;
 import dev.langchain4j.data.message.*;
+import dev.langchain4j.exception.UnsupportedFeatureException;
+import dev.langchain4j.internal.Utils;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.request.ChatRequestParameters;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.rag.AugmentationRequest;
 import dev.langchain4j.rag.AugmentationResult;
@@ -131,12 +136,15 @@ public class LLMHandler {
         String resp = "";
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
         while (true) {
-            ChatRequest chatRequest = ChatRequest.builder()
-                    .messages(chatMessage.chatMemory.messages())
-                    .toolSpecifications(toolSpecifications)
-                    .build();
+            ChatRequest.Builder requestBuilder = ChatRequest.builder()
+                    .messages(chatMessage.chatMemory.messages());
 
-            ChatResponse response = chatModel.chat(chatRequest);
+            // 判断模型是否支持工具调用
+            if(isSupportTools(chatModel.defaultRequestParameters())) {
+                requestBuilder = requestBuilder.toolSpecifications(toolSpecifications);
+            }
+
+            ChatResponse response = chatModel.chat(requestBuilder.build());
 
             AiMessage aiMessage = response.aiMessage();
             chatMessage.chatMemory.add(aiMessage);
@@ -163,6 +171,20 @@ public class LLMHandler {
 
         log.info("[LLMHandler] Received the AI's response . message: {}", resp);
         return resp;
+    }
+
+    /**
+     * 模型是否支持工具调用
+     * @param parameters
+     * @return
+     * @author chenrui
+     * @date 2025/10/14 16:27
+     */
+    private boolean isSupportTools(ChatRequestParameters parameters) {
+        String modelName = parameters.modelName();
+        boolean isMultimodalModel = modelName.contains("-vl-") || modelName.contains("-audio-") || modelName.contains("-omni-");
+        // 多模态模型不支持工具调用
+        return !isMultimodalModel;
     }
 
     /**
@@ -199,15 +221,19 @@ public class LLMHandler {
         AiServiceContext context = new AiServiceContext(AiStreamChatAssistant.class);
         context.streamingChatModel = streamingChatModel;
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
-        return new AiServiceTokenStream(
-                AiServiceTokenStreamParameters.builder()
-                        .messages(chatMessage.chatMemory.messages())
-                        .retrievedContents(chatMessage.augmentationResult != null ? chatMessage.augmentationResult.contents() : null)
-                        .toolSpecifications(toolSpecifications)
-                        .toolExecutors(toolExecutors)
-                        .context(context)
-                        .memoryId("default")
-                        .build());
+
+        AiServiceTokenStreamParameters.Builder parametersBuilder = AiServiceTokenStreamParameters.builder()
+                .messages(chatMessage.chatMemory.messages())
+                .retrievedContents(chatMessage.augmentationResult != null ? chatMessage.augmentationResult.contents() : null)
+                .context(context)
+                .memoryId("default");
+
+        // 判断模型是否支持工具调用
+        if(isSupportTools(streamingChatModel.defaultRequestParameters())) {
+            parametersBuilder = parametersBuilder.toolSpecifications(toolSpecifications).toolExecutors(toolExecutors);
+        }
+
+        return new AiServiceTokenStream(parametersBuilder.build());
     }
 
     /**
