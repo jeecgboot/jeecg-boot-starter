@@ -35,4 +35,21 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.11.3</version>
+                <configuration>
+                    <!-- 如果没有公共类，跳过 Javadoc 生成 -->
+                    <skip>true</skip>
+                    <!-- 或者配置忽略错误 -->
+                    <failOnError>false</failOnError>
+                    <quiet>true</quiet>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
 </project>
