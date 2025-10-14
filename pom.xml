@@ -40,10 +40,10 @@
         <chat-gpt-java.varsion>1.1.5</chat-gpt-java.varsion>
         <commons.version>2.6</commons.version>
 
-        <!-- 分布式锁、xxljob、分库分表 -->
+        <!-- 分布式锁、xxljob -->
         <redisson.version>3.16.1</redisson.version>
         <xxl-job-core.version>2.4.1</xxl-job-core.version>
-        <dynamic-datasource-spring-boot-starter.version>4.1.3</dynamic-datasource-spring-boot-starter.version>
+        <dynamic-datasource-spring-boot-starter.version>4.3.1</dynamic-datasource-spring-boot-starter.version>
 
         <!-- SpringCloud -->
         <spring-cloud.version>2024.0.1</spring-cloud.version>
@@ -59,6 +59,7 @@
         <module>jeecg-boot-starter-rabbitmq</module>
         <module>jeecg-boot-starter-rocketmq</module>
         <module>jeecg-boot-starter-shardingsphere</module>
+        <module>jeecg-boot-starter-shardingsphere-nacos</module>
         <module>jeecg-boot-starter-mongon</module>
         <module>jeecg-boot-starter-chatgpt</module>
         <!-- 微服务 start -->

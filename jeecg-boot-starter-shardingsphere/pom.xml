@@ -7,10 +7,13 @@
         <groupId>org.jeecgframework.boot3</groupId>
         <version>3.8.3</version>
     </parent>
+    <version>3.8.3.1</version>
+    
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jeecg-boot-starter-shardingsphere</artifactId>
     <name>jeecg-boot-starter-shardingsphere</name>
     <description>分库分表</description>
+    
     <dependencies>
         <!-- 动态数据源 -->
         <dependency>
@@ -21,8 +24,14 @@
         <!-- 分库分表 -->
         <dependency>
             <groupId>org.apache.shardingsphere</groupId>
-            <artifactId>shardingsphere-jdbc-core-spring-boot-starter</artifactId>
-            <version>5.0.0</version>
+            <artifactId>shardingsphere-jdbc</artifactId>
+            <version>5.5.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-test-util</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
