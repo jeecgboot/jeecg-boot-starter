@@ -9,6 +9,9 @@ import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiEmbeddingModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiStreamingChatModel;
 import dev.langchain4j.community.model.zhipu.chat.ChatCompletionModel;
+import dev.langchain4j.model.anthropic.AnthropicChatModel;
+import dev.langchain4j.model.anthropic.AnthropicChatModelName;
+import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -40,6 +43,7 @@ public class AiModelFactory {
     public static final String AIMODEL_TYPE_QWEN = "QWEN";
     public static final String AIMODEL_TYPE_DEEPSEEK = "DEEPSEEK";
     public static final String AIMODEL_TYPE_OLLAMA = "OLLAMA";
+    public static final String AIMODEL_TYPE_ANTHROPIC = "ANTHROPIC";
 
 
     /**
@@ -211,6 +215,25 @@ public class AiModelFactory {
                 }
                 chatModel = dsBuilder.build();
                 break;
+            case AIMODEL_TYPE_ANTHROPIC:
+                assertNotEmpty("apiKey不能为空", apiKey);
+                baseUrl = getString(baseUrl, "https://api.anthropic.com/v1");
+                modelName = getString(modelName, AnthropicChatModelName.CLAUDE_3_5_SONNET_20241022.toString());
+                AnthropicChatModel.AnthropicChatModelBuilder anthropicBuilder = AnthropicChatModel.builder()
+                        .apiKey(apiKey)
+                        .baseUrl(baseUrl)
+                        .modelName(modelName)
+                        // 温度 0-1 step 0.1
+                        .temperature(temperature)
+                        // 多样性  0-1 step 0.1
+                        .topP(topP)
+                        .timeout(Duration.ofSeconds(timeout))
+                        .maxRetries(0);
+                if (null != maxTokens) {
+                    anthropicBuilder.maxTokens(maxTokens);
+                }
+                chatModel = anthropicBuilder.build();
+                break;
         }
         setCache(cacheKey, chatModel);
         return chatModel;
@@ -362,6 +385,24 @@ public class AiModelFactory {
                     dsBuilder.maxTokens(maxTokens);
                 }
                 chatModel = dsBuilder.build();
+                break;
+            case AIMODEL_TYPE_ANTHROPIC:
+                assertNotEmpty("apiKey不能为空", apiKey);
+                baseUrl = getString(baseUrl, "https://api.anthropic.com/v1");
+                modelName = getString(modelName, AnthropicChatModelName.CLAUDE_3_5_SONNET_20241022.toString());
+                AnthropicStreamingChatModel.AnthropicStreamingChatModelBuilder anthropicStreamBuilder = AnthropicStreamingChatModel.builder()
+                        .apiKey(apiKey)
+                        .baseUrl(baseUrl)
+                        .modelName(modelName)
+                        // 温度 0-1 step 0.1
+                        .temperature(temperature)
+                        // 多样性  0-1 step 0.1
+                        .topP(topP)
+                        .timeout(Duration.ofSeconds(timeout));
+                if (null != maxTokens) {
+                    anthropicStreamBuilder.maxTokens(maxTokens);
+                }
+                chatModel = anthropicStreamBuilder.build();
                 break;
         }
         setCache(cacheKey, chatModel);
