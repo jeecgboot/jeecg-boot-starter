@@ -71,6 +71,11 @@ public class AiModelOptions {
      */
     Integer timeout;
 
+    /**
+     * 返回思考过程
+     */
+    Boolean returnThinking;
+
     @Override
     public String toString() {
         return "AiModelOptions{" +
@@ -87,6 +92,7 @@ public class AiModelOptions {
                 ", topNumber=" + topNumber +
                 ", similarity=" + similarity +
                 ", timeout=" + timeout +
+                ", returnThinking=" + returnThinking +
                 '}';
     }
 }

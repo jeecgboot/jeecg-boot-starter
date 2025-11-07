@@ -213,6 +213,9 @@ public class AiModelFactory {
                 if (null != maxTokens) {
                     dsBuilder.maxTokens(maxTokens);
                 }
+                if (null != options.getReturnThinking()) {
+                    dsBuilder.returnThinking(options.getReturnThinking());
+                }
                 chatModel = dsBuilder.build();
                 break;
             case AIMODEL_TYPE_ANTHROPIC:
@@ -383,6 +386,9 @@ public class AiModelFactory {
                         .timeout(Duration.ofSeconds(timeout));
                 if (null != maxTokens) {
                     dsBuilder.maxTokens(maxTokens);
+                }
+                if (null != options.getReturnThinking()) {
+                    dsBuilder.returnThinking(options.getReturnThinking());
                 }
                 chatModel = dsBuilder.build();
                 break;

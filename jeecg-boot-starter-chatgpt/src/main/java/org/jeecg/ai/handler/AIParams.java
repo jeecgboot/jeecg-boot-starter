@@ -82,6 +82,11 @@ public class AIParams {
     Integer timeout;
 
     /**
+     * 返回思考过程
+     */
+    Boolean returnThinking;
+
+    /**
      * FunctionCall工具集合
      */
     Map<ToolSpecification, ToolExecutor> tools;
@@ -106,6 +111,7 @@ public class AIParams {
                 .topNumber(this.getTopNumber())
                 .similarity(this.getSimilarity())
                 .timeout(this.getTimeout())
+                .returnThinking(this.getReturnThinking())
                 .build();
     }
 
