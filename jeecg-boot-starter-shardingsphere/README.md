@@ -19,7 +19,7 @@
 <dependency>
     <groupId>org.jeecgframework.boot3</groupId>
     <artifactId>jeecg-boot-starter-shardingsphere</artifactId>
-    <version>3.8.3.1</version>
+    <version>3.9.0</version>
 </dependency>
 ```
 
@@ -38,7 +38,7 @@
 <dependency>
     <groupId>org.jeecgframework.boot3</groupId>
     <artifactId>jeecg-boot-starter-shardingsphere</artifactId>
-    <version>3.8.3.1</version>
+    <version>3.9.0</version>
 </dependency>
 ```
 
