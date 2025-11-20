@@ -76,6 +76,12 @@ public class AiModelOptions {
      */
     Boolean returnThinking;
 
+    /**
+     * 启用搜索
+     * for [issues/8781]千问模型，调用时是否可以增加千问模型自己的调用参数，例如允许联网搜索。 #8781
+     */
+    Boolean enableSearch;
+
     @Override
     public String toString() {
         return "AiModelOptions{" +
@@ -93,6 +99,7 @@ public class AiModelOptions {
                 ", similarity=" + similarity +
                 ", timeout=" + timeout +
                 ", returnThinking=" + returnThinking +
+                ", enableSearch=" + enableSearch +
                 '}';
     }
 }

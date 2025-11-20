@@ -156,6 +156,7 @@ public class AiModelFactory {
                 assertNotEmpty("apiKey不能为空", apiKey);
                 modelName = getString(modelName, QwenModelName.QWEN_PLUS);
                 boolean isMultiModal = modelName.contains("vl-") || modelName.contains("audio-") || modelName.contains("omni-");
+                boolean enableSearch = getBool(options.getEnableSearch(), false);
                 QwenChatModel.QwenChatModelBuilder qwenBuilder = QwenChatModel.builder()
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
@@ -163,8 +164,8 @@ public class AiModelFactory {
                         // 温度 0-1 step 0.1
                         .temperature((float) temperature)
                         // 多样性  0-1 step 0.1
-                        .topP(topP);
-
+                        .topP(topP)
+                        .enableSearch(enableSearch);
                 if(!(modelName.contains("-vl-") || modelName.contains("-audio-") || modelName.contains("-omni-"))){
                     // 非多模态模型才支持设置重复惩罚
                     // 重复惩罚
@@ -332,6 +333,7 @@ public class AiModelFactory {
             case AIMODEL_TYPE_QWEN:
                 assertNotEmpty("apiKey不能为空", apiKey);
                 modelName = getString(modelName, QwenModelName.QWEN_PLUS);
+                Boolean enableSearch = getBool(options.getEnableSearch(), false);
                 QwenStreamingChatModel.QwenStreamingChatModelBuilder qwenBuilder = QwenStreamingChatModel.builder()
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
@@ -339,7 +341,9 @@ public class AiModelFactory {
                         // 温度 0-1 step 0.1
                         .temperature((float) temperature)
                         // 多样性  0-1 step 0.1
-                        .topP(topP);
+                        .topP(topP)
+                        // 启用联网搜索
+                        .enableSearch(enableSearch);
                 if(!(modelName.contains("-vl-") || modelName.contains("-audio-") || modelName.contains("-omni-"))){
                     // 非多模态模型才支持设置重复惩罚
                     // 重复惩罚
@@ -619,6 +623,17 @@ public class AiModelFactory {
         }
         try {
             return (Double.parseDouble(object.toString()));
+        } catch (NumberFormatException e) {
+            return (defval);
+        }
+    }
+
+    public static Boolean getBool(Boolean object, Boolean defval) {
+        if (object == null) {
+            return (defval);
+        }
+        try {
+            return (Boolean.parseBoolean(object.toString()));
         } catch (NumberFormatException e) {
             return (defval);
         }
