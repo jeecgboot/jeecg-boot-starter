@@ -96,6 +96,12 @@ public class AIParams {
      */
     List<McpToolProvider> mcpToolProviders;
 
+    /**
+     * 启用联网搜索
+     * for [issues/8781]千问模型，调用时是否可以增加千问模型自己的调用参数，例如允许联网搜索。 #8781
+     */
+    Boolean enableSearch;
+
     public AiModelOptions toModelOptions() {
         return AiModelOptions.builder()
                 .provider(this.getProvider())
@@ -112,6 +118,7 @@ public class AIParams {
                 .similarity(this.getSimilarity())
                 .timeout(this.getTimeout())
                 .returnThinking(this.getReturnThinking())
+                .enableSearch(this.getEnableSearch())
                 .build();
     }
 
