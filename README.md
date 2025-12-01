@@ -1,6 +1,6 @@
 # jeecg-boot-starter
 
-当前最新版本： 3.9.0（发布日期：2025-01-17）
+当前最新版本： 3.9.0（发布日期：2025-12-01）
 
 ### 介绍
 > jeecg-boot-starter 是 JeecgBoot 低代码平台的核心启动器模块集合，基于 Spring Boot 3 和 JDK 17 构建。
