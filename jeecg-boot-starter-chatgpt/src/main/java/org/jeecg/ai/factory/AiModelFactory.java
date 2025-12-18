@@ -222,7 +222,7 @@ public class AiModelFactory {
             case AIMODEL_TYPE_ANTHROPIC:
                 assertNotEmpty("apiKey不能为空", apiKey);
                 baseUrl = getString(baseUrl, "https://api.anthropic.com/v1");
-                modelName = getString(modelName, AnthropicChatModelName.CLAUDE_3_5_SONNET_20241022.toString());
+                modelName = getString(modelName, AnthropicChatModelName.CLAUDE_SONNET_4_5_20250929.toString());
                 AnthropicChatModel.AnthropicChatModelBuilder anthropicBuilder = AnthropicChatModel.builder()
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
@@ -399,7 +399,7 @@ public class AiModelFactory {
             case AIMODEL_TYPE_ANTHROPIC:
                 assertNotEmpty("apiKey不能为空", apiKey);
                 baseUrl = getString(baseUrl, "https://api.anthropic.com/v1");
-                modelName = getString(modelName, AnthropicChatModelName.CLAUDE_3_5_SONNET_20241022.toString());
+                modelName = getString(modelName, AnthropicChatModelName.CLAUDE_SONNET_4_5_20250929.toString());
                 AnthropicStreamingChatModel.AnthropicStreamingChatModelBuilder anthropicStreamBuilder = AnthropicStreamingChatModel.builder()
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)

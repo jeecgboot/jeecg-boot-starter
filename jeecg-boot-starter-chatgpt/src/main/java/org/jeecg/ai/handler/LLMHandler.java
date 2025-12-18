@@ -3,6 +3,7 @@ package org.jeecg.ai.handler;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.*;
+import dev.langchain4j.exception.ToolExecutionException;
 import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -15,20 +16,17 @@ import dev.langchain4j.rag.AugmentationRequest;
 import dev.langchain4j.rag.AugmentationResult;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.query.Metadata;
-import dev.langchain4j.service.AiServiceContext;
-import dev.langchain4j.service.AiServiceTokenStream;
-import dev.langchain4j.service.AiServiceTokenStreamParameters;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.output.ServiceOutputParser;
 import dev.langchain4j.service.tool.ToolExecutor;
-import dev.langchain4j.service.tool.ToolService;
-import dev.langchain4j.service.tool.ToolServiceContext;
+import dev.langchain4j.service.tool.ToolProviderRequest;
+import dev.langchain4j.service.tool.ToolProviderResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.jeecg.ai.assistant.AiStreamChatAssistant;
 import org.jeecg.ai.factory.AiModelFactory;
 import org.jeecg.ai.factory.AiModelOptions;
 import org.jeecg.ai.prop.AiChatProperties;
+import org.jeecg.ai.stream.InternalTokenStream;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -145,9 +143,15 @@ public class LLMHandler {
             if(isSupportTools(chatModel.defaultRequestParameters())) {
                 requestBuilder = requestBuilder.toolSpecifications(toolSpecifications);
             }
-
-            ChatResponse response = chatModel.chat(requestBuilder.build());
-
+            //update-begin---author:wangshuai---date:2025-12-18---for: 工具调用失败后打印日志，不影响整个流程---
+            ChatResponse response = null;
+            try {
+                response = chatModel.chat(requestBuilder.build());
+            } catch (ToolExecutionException e) {
+                log.error("工具调用失败：{}", e.getMessage(), e);
+                break;
+            }
+            //update-end---author:wangshuai---date:2025-12-18---for: 工具调用失败后打印日志，不影响整个流程---
             AiMessage aiMessage = response.aiMessage();
             chatMessage.chatMemory.add(aiMessage);
 
@@ -164,9 +168,14 @@ public class LLMHandler {
                     throw new IllegalStateException("未找到工具执行器: " + toolExecReq.name());
                 }
                 log.info("[LLMHandler] Executing tool: {} ", toolExecReq.name());
-                String result = executor.execute(toolExecReq, chatMessage.chatMemory.id());
-                ToolExecutionResultMessage resultMsg = ToolExecutionResultMessage.from(toolExecReq, result);
-                chatMessage.chatMemory.add(resultMsg);
+                try{
+                    String result = executor.execute(toolExecReq, chatMessage.chatMemory.id());
+                    ToolExecutionResultMessage resultMsg = ToolExecutionResultMessage.from(toolExecReq, result);
+                    chatMessage.chatMemory.add(resultMsg);
+                }catch (ToolExecutionException e){
+                    log.info("插件运行失败，原因：{}",e.getMessage(),e);
+                }
+   
             }
         }
 
@@ -224,23 +233,17 @@ public class LLMHandler {
         // MCP工具解析
         fillMcpTools(params, chatMessage, toolSpecifications, toolExecutors);
 
-        AiServiceContext context = new AiServiceContext(AiStreamChatAssistant.class);
-        context.streamingChatModel = streamingChatModel;
-        log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
-
-        AiServiceTokenStreamParameters.Builder parametersBuilder = AiServiceTokenStreamParameters.builder()
-                .messages(chatMessage.chatMemory.messages())
-                .retrievedContents(chatMessage.augmentationResult != null ? chatMessage.augmentationResult.contents() : null)
-                .context(context)
-                .memoryId("default");
-
-        // 判断模型是否支持工具调用
-        if(isSupportTools(streamingChatModel.defaultRequestParameters())) {
-            parametersBuilder = parametersBuilder.toolSpecifications(toolSpecifications).toolExecutors(toolExecutors);
-        }
-
-        return new AiServiceTokenStream(parametersBuilder.build());
+        //update-begin---author:wangshuai---date:2025-12-18---for:【QQYUN-14048】【AI】langchain4j 升级到1.9.1---
+        return new InternalTokenStream(
+                streamingChatModel,
+                toolSpecifications,
+                toolExecutors,
+                chatMessage.chatMemory,
+                chatMessage.augmentationResult != null ? chatMessage.augmentationResult.contents() : null
+        );
+        //update-end---author:wangshuai---date:2025-12-18---for:【QQYUN-14048】【AI】langchain4j 升级到1.9.1---
     }
+
 
     /**
      * 将 MCP ToolProviders 解析并填充到工具规格与执行器集合中
@@ -264,14 +267,14 @@ public class LLMHandler {
             return;
         }
         for (McpToolProvider toolProvider : params.getMcpToolProviders()) {
-            ToolService toolService = new ToolService();
-            toolService.toolProvider(toolProvider);
-            ToolServiceContext toolCtx = toolService.createContext(chatMessage.chatMemory.id(), chatMessage.userMessage);
-            for (ToolSpecification toolSpec : toolCtx.toolSpecifications()) {
-                ToolExecutor executor = toolCtx.toolExecutors().get(toolSpec.name());
-                if (executor != null) {
-                    toolSpecifications.add(toolSpec);
-                    toolExecutors.put(toolSpec.name(), executor);
+            //update-begin---author:wangshuai---date:2025-12-18---for:【QQYUN-14048】【AI】langchain4j 升级到1.9.1---
+            ToolProviderRequest request = new ToolProviderRequest(chatMessage.chatMemory.id(),chatMessage.userMessage);
+            ToolProviderResult result = toolProvider.provideTools(request);
+            if (result != null && result.tools() != null) {
+                for (Map.Entry<ToolSpecification, ToolExecutor> entry : result.tools().entrySet()) {
+                    toolSpecifications.add(entry.getKey());
+                    toolExecutors.put(entry.getKey().name(), entry.getValue());
+            //update-end---author:wangshuai---date:2025-12-18---for:【QQYUN-14048】【AI】langchain4j 升级到1.9.1---
                 }
             }
         }
@@ -341,7 +344,7 @@ public class LLMHandler {
             DefaultRetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder().queryRouter(params.getQueryRouter()).build();
             if (retrievalAugmentor != null) {
                 StringBuilder userQuestion = new StringBuilder();
-                List<Content> contents = new ArrayList<>(userMessage.contents());
+                List<dev.langchain4j.data.message.Content> contents = new ArrayList<>(userMessage.contents());
                 for (int i = contents.size() - 1; i >= 0; i--) {
                     if (contents.get(i) instanceof TextContent) {
                         userQuestion.append(((TextContent) contents.remove(i)).text());
@@ -353,7 +356,7 @@ public class LLMHandler {
                 AugmentationRequest augmentationRequest = new AugmentationRequest(textUserMessage, metadata);
                 augmentationResult = retrievalAugmentor.augment(augmentationRequest);
                 textUserMessage = (UserMessage) augmentationResult.chatMessage();
-                contents.add(TextContent.from(textUserMessage.singleText()));
+                contents.add(dev.langchain4j.data.message.TextContent.from(textUserMessage.singleText()));
                 userMessage = UserMessage.from(contents);
             }
         }
