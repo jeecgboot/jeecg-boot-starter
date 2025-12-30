@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 /**
  * 定时任务配置
@@ -34,10 +35,16 @@ public class XxlJobConfiguration {
         XxlJobSpringExecutor xxlJobSpringExecutor = new XxlJobSpringExecutor();
         xxlJobSpringExecutor.setAdminAddresses(xxlJobProperties.getAdminAddresses());
         xxlJobSpringExecutor.setAppname(xxlJobProperties.getAppname());
-        //update-begin--Author:scott -- Date:20210305 -- for：system服务和demo服务有办法同时使用xxl-job吗 #2313---
-        //xxlJobSpringExecutor.setIp(xxlJobProperties.getIp());
-        //xxlJobSpringExecutor.setPort(xxlJobProperties.getPort());
-        //update-end--Author:scott -- Date:20210305 -- for：system服务和demo服务有办法同时使用xxl-job吗 #2313---
+        //update-begin--Author:scott -- Date:20251230 -- for：支持手动配置IP和Port解决跨网络问题#9189、兼容system服务和demo服务无法同时使用xxl-job #2313---
+        String ip = xxlJobProperties.getIp();
+        Integer port = xxlJobProperties.getPort();
+        if (StringUtils.hasText(ip)) {
+            xxlJobSpringExecutor.setIp(ip);
+        }
+        if (port != null && port > 0) {
+            xxlJobSpringExecutor.setPort(port);
+        }
+        //update-end--Author:scott -- Date:20251230 -- for：支持手动配置IP和Port解决跨网络问题#9189、兼容system服务和demo服务无法同时使用xxl-job #2313---
         xxlJobSpringExecutor.setAccessToken(xxlJobProperties.getAccessToken());
         xxlJobSpringExecutor.setLogPath(xxlJobProperties.getLogPath());
         xxlJobSpringExecutor.setLogRetentionDays(xxlJobProperties.getLogRetentionDays());
