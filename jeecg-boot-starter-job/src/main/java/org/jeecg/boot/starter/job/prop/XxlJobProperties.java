@@ -17,7 +17,7 @@ public class XxlJobProperties {
     private String ip;
 
 
-    private int port;
+    private Integer port;
 
 
     private String accessToken;
@@ -26,7 +26,7 @@ public class XxlJobProperties {
     private String logPath;
 
 
-    private int logRetentionDays;
+    private Integer logRetentionDays;
 
     /**
      * 是否开启xxljob
