@@ -161,12 +161,21 @@ public class RedisConfig extends CachingConfigurerSupport {
 
 	/**
 	 * redis 监听配置
+	 * 注意：某些云Redis服务或受限环境不支持SUBSCRIBE命令
+	 * 如果生产环境Redis不支持pub/sub，请在配置文件中设置：jeecg.redis.listener-enabled=false
 	 *
 	 * @param redisConnectionFactory redis 配置
 	 * @return
 	 */
 	@Bean
+	@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+		prefix = "jeecg.redis",
+		name = "listener-enabled",
+		havingValue = "true",
+		matchIfMissing = true
+	)
 	public RedisMessageListenerContainer redisContainer(RedisConnectionFactory redisConnectionFactory, RedisReceiver redisReceiver, MessageListenerAdapter commonListenerAdapter) {
+		log.info("Redis消息监听器已启用。如果Redis不支持SUBSCRIBE命令，请设置 jeecg.redis.listener-enabled=false");
 		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(redisConnectionFactory);
 		container.addMessageListener(commonListenerAdapter, new ChannelTopic(GlobalConstants.REDIS_TOPIC_NAME));
@@ -175,6 +184,12 @@ public class RedisConfig extends CachingConfigurerSupport {
 
 
 	@Bean
+	@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+		prefix = "jeecg.redis",
+		name = "listener-enabled",
+		havingValue = "true",
+		matchIfMissing = true
+	)
 	MessageListenerAdapter commonListenerAdapter(RedisReceiver redisReceiver) {
 		MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(redisReceiver, "onMessage");
 		messageListenerAdapter.setSerializer(jacksonSerializer());

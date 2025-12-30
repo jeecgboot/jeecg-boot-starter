@@ -137,3 +137,8 @@ jeecg-boot-common/src/main/java/org/jeecg/common/modules/redis/config/RedisConfi
 org/jeecg/boot/starter/job/config/XxlJobConfiguration.java
 org/jeecg/boot/starter/job/prop/XxlJobProperties.java
 -Author:scott -- Date:20251230 -- for：支持手动配置IP和Port解决跨网络问题#9189、兼容system服务和demo服务无法同时使用xxl-job #2313-
+
+---author:scott--date:20251230---for:[#9225]修复生产环境Redis不支持SUBSCRIBE命令的问题---
+org/jeecg/common/modules/redis/config/JeecgRedisCacheTtls.java
+org/jeecg/common/modules/redis/config/RedisConfig.java
+---author:scott---date:20251230---for:[#9225]修复生产环境Redis不支持SUBSCRIBE命令的问题---

@@ -1,6 +1,6 @@
 # jeecg-boot-starter
 
-当前最新版本： 3.9.0（发布日期：2025-12-01）
+当前最新版本： 3.9.1-beta（发布日期：2025-12-25）
 
 ### 介绍
 > jeecg-boot-starter 是 JeecgBoot 低代码平台的核心启动器模块集合，基于 Spring Boot 3 和 JDK 17 构建。
@@ -119,8 +119,21 @@
 - ✅ **生产级别**：经过大量项目验证，稳定可靠
 - ✅ **持续更新**：紧跟技术发展，定期更新维护
 
+### 常见问题
+
+#### Redis配置问题
+
+如果生产环境的Redis不支持订阅（SUBSCRIBE）命令，会导致应用启动失败。解决方案：
+
+```yaml
+jeecg:
+  redis:
+    # 禁用Redis消息监听器（当生产环境Redis不支持SUBSCRIBE命令时）
+    listener-enabled: false
+```
+
 ### 技术支持
 
 - 本项目关闭issue，使用中遇到问题或BUG可以在 [JeecgBoot主项目上提Issues](https://github.com/jeecgboot/jeecg-boot/issues/new)
-- 官方支持： http://jeecg.com/doc/help
-- 官方文档： http://doc.jeecg.com
+- 官方支持： https://jeecg.com/doc/help
+- 官方文档： https://help.jeecg.com
