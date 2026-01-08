@@ -142,3 +142,7 @@ org/jeecg/boot/starter/job/prop/XxlJobProperties.java
 org/jeecg/common/modules/redis/config/JeecgRedisCacheTtls.java
 org/jeecg/common/modules/redis/config/RedisConfig.java
 ---author:scott---date:20251230---for:[#9225]修复生产环境Redis不支持SUBSCRIBE命令的问题---
+
+-- author:sjlei---date:20260107--for: `InternalTokenStream`实现`beforeToolExecution`方法 ---
+jeecg-boot-starter-chatgpt/src/main/java/org/jeecg/ai/stream/InternalTokenStream.java
+-- author:sjlei---date:20260107--for: `InternalTokenStream`实现`beforeToolExecution`方法 ---

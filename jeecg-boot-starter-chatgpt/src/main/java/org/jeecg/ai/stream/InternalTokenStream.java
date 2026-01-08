@@ -12,6 +12,7 @@ import dev.langchain4j.model.chat.response.PartialThinking;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.rag.content.Content;
 import dev.langchain4j.service.TokenStream;
+import dev.langchain4j.service.tool.BeforeToolExecution;
 import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.service.tool.ToolExecutionResult;
 import dev.langchain4j.service.tool.ToolExecutor;
@@ -45,6 +46,7 @@ public class InternalTokenStream implements TokenStream {
     private Runnable onComplete;
     private Consumer<List<Content>> onRetrieved;
     private Consumer<ToolExecution> onToolExecuted;
+    private Consumer<BeforeToolExecution> beforeToolExecutionHandler;
     private Consumer<ChatResponse> onCompleteResponse;
     private Consumer<ChatResponse> onIntermediateResponse;
 
@@ -115,6 +117,19 @@ public class InternalTokenStream implements TokenStream {
     @Override
     public TokenStream onRetrieved(Consumer<List<Content>> onRetrieved) {
         this.onRetrieved = onRetrieved;
+        return this;
+    }
+
+    /**
+     * 设置工具执行之前监听器
+     *
+     * @param beforeToolExecutionHandler 工具执行之前监听器
+     * @return 当前 TokenStream 实例
+     * @author sjlei
+     */
+    @Override
+    public TokenStream beforeToolExecution(Consumer<BeforeToolExecution> beforeToolExecutionHandler) {
+        this.beforeToolExecutionHandler = beforeToolExecutionHandler;
         return this;
     }
 
@@ -231,6 +246,17 @@ public class InternalTokenStream implements TokenStream {
                             }
                             return;
                         }
+
+                        // 工具执行前回调
+                        if (beforeToolExecutionHandler != null) {
+                            try {
+                                BeforeToolExecution beforeToolExecution = BeforeToolExecution.builder().request(toolExecReq).build();
+                                beforeToolExecutionHandler.accept(beforeToolExecution);
+                            } catch (Exception e) {
+                                log.error("Error in beforeToolExecutionHandler callback: {}", e.getMessage());
+                            }
+                        }
+
                         log.info("[LLMHandler] Executing tool: {} ", toolExecReq.name());
                         String result;
                         try {
