@@ -101,6 +101,16 @@ public class AIParams {
      * for [issues/8781]千问模型，调用时是否可以增加千问模型自己的调用参数，例如允许联网搜索。 #8781
      */
     Boolean enableSearch;
+    
+    /**
+     * 生成图片的数量
+     */
+    Integer imageCount;
+
+    /**
+     * 图片大小，长*款(1024*1024)
+     */
+    String imageSize;
 
     public AiModelOptions toModelOptions() {
         return AiModelOptions.builder()
@@ -119,6 +129,8 @@ public class AIParams {
                 .timeout(this.getTimeout())
                 .returnThinking(this.getReturnThinking())
                 .enableSearch(this.getEnableSearch())
+                .imageCount(this.getImageCount())
+                .imageSize(this.getImageSize())
                 .build();
     }
 

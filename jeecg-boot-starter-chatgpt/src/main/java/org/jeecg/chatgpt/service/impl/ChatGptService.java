@@ -6,6 +6,7 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.jeecg.ai.handler.AIParams;
 import org.jeecg.ai.handler.LLMHandler;
 import org.jeecg.chatgpt.dto.chat.MultiChatMessage;
 import org.jeecg.chatgpt.dto.image.ImageFormat;
@@ -15,6 +16,7 @@ import org.jeecg.chatgpt.service.AiChatService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -122,17 +124,27 @@ public class ChatGptService implements AiChatService {
     //*****************************************generate begin*********************************************/
 
     @Override
-    public String imageGenerate(String prompt) {
-        // TODO author: chenrui for:图像生成 date:2025/3/11
-        log.warn("暂不支持图像生成");
-        return null;
+    public Map<String,Object> imageGenerate(String prompt) {
+        if (StringUtils.isEmpty(prompt)) {
+            return null;
+        }
+        AIParams params = new AIParams();
+        params.setImageCount(1);
+        List<Map<String,Object>> strings = llmHandler.imageGenerate(prompt, params);
+        if (strings.isEmpty()) {
+            return null;
+        }
+        return strings.get(0);
     }
 
     @Override
-    public List<String> imageGenerate(String prompt, Integer n, ImageSize size, ImageFormat format) {
-        // TODO author: chenrui for:图像生成 date:2025/3/11
-        log.warn("暂不支持图像生成");
-        return null;
+    public List<Map<String,Object>> imageGenerate(String prompt, Integer n, ImageSize size, ImageFormat format) {       
+        if (StringUtils.isEmpty(prompt)) {
+            return new ArrayList<>();
+        }
+        AIParams params = new AIParams();
+        params.setImageCount(n);
+        return llmHandler.imageGenerate(prompt, params);
     }
 
     //*****************************************generate end*********************************************/

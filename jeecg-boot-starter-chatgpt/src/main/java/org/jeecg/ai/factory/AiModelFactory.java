@@ -1,19 +1,19 @@
 package org.jeecg.ai.factory;
 
-import dev.langchain4j.community.model.dashscope.QwenChatModel;
-import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
-import dev.langchain4j.community.model.dashscope.QwenModelName;
-import dev.langchain4j.community.model.dashscope.QwenStreamingChatModel;
+import dev.langchain4j.community.model.dashscope.*;
 import dev.langchain4j.community.model.qianfan.*;
 import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiEmbeddingModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiStreamingChatModel;
+import dev.langchain4j.community.model.zhipu.ZhipuAiImageModel;
 import dev.langchain4j.community.model.zhipu.chat.ChatCompletionModel;
+import dev.langchain4j.community.model.zhipu.image.ImageModelName;
 import dev.langchain4j.model.anthropic.AnthropicChatModel;
 import dev.langchain4j.model.anthropic.AnthropicChatModelName;
 import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 import dev.langchain4j.model.ollama.OllamaEmbeddingModel;
@@ -507,6 +507,80 @@ public class AiModelFactory {
         }
         setCache(cacheKey, embeddingModel);
         return embeddingModel;
+    }
+
+    /**
+     * 创建图片生成模型
+     *
+     * @param options
+     * @return
+     * @author wangshuai
+     * @date 2026/01/04 19:28
+     */
+    public static ImageModel createImageModel(AiModelOptions options) {
+        assertNotEmpty("请设置模型参数", options);
+        assertNotEmpty("请选择AI模型供应商", options.getProvider());
+        String cacheKey = "IMAGE_" + options.toString();
+        Object cachedModel = getCache(cacheKey);
+        if (cachedModel != null) {
+            return (ImageModel) cachedModel;
+        }
+        String apiKey = options.getApiKey();
+        String baseUrl = options.getBaseUrl();
+        String modelName = options.getModelName();
+        int timeout = getInteger(options.getTimeout(), 120);
+
+        ImageModel imageModel = null;
+        switch (options.getProvider().toUpperCase()) {
+            case AIMODEL_TYPE_OPENAI:
+                assertNotEmpty("apiKey不能为空", apiKey);
+                baseUrl = ensureOpenAiUrlEnd(baseUrl);
+                modelName = getString(modelName, OpenAiImageModelName.DALL_E_3.toString());
+                OpenAiImageModel.OpenAiImageModelBuilder builder = OpenAiImageModel.builder()
+                        .apiKey(apiKey)
+                        .baseUrl(baseUrl)
+                        .modelName(modelName)
+                        .timeout(Duration.ofSeconds(timeout))
+                        .maxRetries(0)
+                        .logRequests(true)
+                        .logResponses(true);
+                if(StringUtils.isNotEmpty(options.getImageSize()) && ("dall-e-2".equals(options.getModelName()) || "dall-e-3".equals(options.getModelName()))){
+                    builder.size(options.getImageSize());
+                }
+                imageModel = builder.build();
+                break;
+            case AIMODEL_TYPE_ZHIPU:
+                assertNotEmpty("apiKey不能为空", apiKey);
+                modelName = getString(modelName, ImageModelName.COGVIEW_3.toString());
+                imageModel = ZhipuAiImageModel.builder()
+                        .apiKey(apiKey)
+                        .baseUrl(baseUrl)
+                        .model(modelName)
+                        .readTimeout(Duration.ofSeconds(timeout))
+                        .connectTimeout(Duration.ofSeconds(timeout))
+                        .maxRetries(0)
+                        .logRequests(true)
+                        .logResponses(true)
+                        .build();
+                break;
+            case AIMODEL_TYPE_QWEN:
+                assertNotEmpty("apiKey不能为空", apiKey);
+                modelName = getString(modelName, "wanx-v1");
+                WanxImageModel.WanxImageModelBuilder wanxBuilder = WanxImageModel.builder()
+                        .apiKey(apiKey)
+                        .watermark(false)
+                        .baseUrl(baseUrl)
+                        .modelName(modelName);
+                if(StringUtils.isNotEmpty(options.getImageSize())){
+                    wanxBuilder.size(WanxImageSize.of(options.getImageSize()));
+                }
+                imageModel = wanxBuilder.build();
+                break;
+            default:
+                throw new RuntimeException("不支持的模型");
+        }
+        setCache(cacheKey, imageModel);
+        return imageModel;
     }
 
     /**

@@ -82,6 +82,16 @@ public class AiModelOptions {
      */
     Boolean enableSearch;
 
+    /**
+     * 图片大小，长*宽(1024*1024)
+     */
+    String imageSize;
+
+    /**
+     * 生成图片的数量
+     */
+    Integer imageCount;
+    
     @Override
     public String toString() {
         return "AiModelOptions{" +
@@ -100,6 +110,8 @@ public class AiModelOptions {
                 ", timeout=" + timeout +
                 ", returnThinking=" + returnThinking +
                 ", enableSearch=" + enableSearch +
+                ", imageCount=" + imageCount +
+                ", imageSize=" + imageSize +
                 '}';
     }
 }
