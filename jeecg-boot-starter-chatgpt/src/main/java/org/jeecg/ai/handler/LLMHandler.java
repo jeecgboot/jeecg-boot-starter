@@ -1,7 +1,11 @@
 package org.jeecg.ai.handler;
 
+import com.alibaba.dashscope.aigc.imagesynthesis.ImageSynthesis;
+import com.alibaba.dashscope.aigc.imagesynthesis.ImageSynthesisParam;
+import com.alibaba.dashscope.aigc.imagesynthesis.ImageSynthesisResult;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
+import dev.langchain4j.data.image.Image;
 import dev.langchain4j.data.message.*;
 import dev.langchain4j.exception.ToolExecutionException;
 import dev.langchain4j.mcp.McpToolProvider;
@@ -12,6 +16,8 @@ import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.request.ChatRequestParameters;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.image.ImageModel;
+import dev.langchain4j.model.output.Response;
 import dev.langchain4j.rag.AugmentationRequest;
 import dev.langchain4j.rag.AugmentationResult;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
@@ -23,12 +29,20 @@ import dev.langchain4j.service.tool.ToolProviderRequest;
 import dev.langchain4j.service.tool.ToolProviderResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.jeecg.ai.enums.QwenImageModelEnum;
 import org.jeecg.ai.factory.AiModelFactory;
 import org.jeecg.ai.factory.AiModelOptions;
 import org.jeecg.ai.prop.AiChatProperties;
 import org.jeecg.ai.stream.InternalTokenStream;
+import org.springframework.util.CollectionUtils;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -388,4 +402,266 @@ public class LLMHandler {
         }
     }
 
+    /**
+     * 
+     * 图像生成
+     * 
+     * @param prompt
+     * @param params
+     * @return
+     */
+    public List<Map<String,Object>> imageGenerate(String prompt, AIParams params) {
+        params = ensureParams(params);
+        if (null == params) {
+            throw new IllegalArgumentException("大语言模型参数为空");
+        }
+
+        AiModelOptions options = params.toModelOptions();
+
+        ImageModel imageModel = AiModelFactory.createImageModel(options);
+        List<Map<String,Object>> result = new ArrayList<>();
+        Integer imageCount = params.imageCount;
+        int count = (imageCount == null || imageCount < 1) ? 1 : imageCount;
+        try {
+            for (int i = 0; i < count; i++) {
+                Response<Image> resp = imageModel.generate(prompt);
+                Image image = resp.content();
+                Map<String, Object> item = new HashMap<>();
+                if (StringUtils.isNotEmpty(image.base64Data())) {
+                    item.put("type", "base64");
+                    String base64 = image.base64Data();
+                    if (!base64.startsWith("data:")) {
+                        base64 = "data:image/png;base64," + base64;
+                    }
+                    item.put("value", base64);
+                } else if (image.url() != null) {
+                    item.put("type", "http");
+                    item.put("value", image.url().toString());
+                }
+                result.add(item);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+        return result;
+    }
+
+    /**
+     * 根据图片内容和提示词生成图片（目前底层仅支持千问）
+     *
+     * @param prompt
+     * @param originalImages
+     * @param params
+     * @return
+     */
+    public List<Map<String,Object>> imageEdit(String prompt, List<String> originalImages , AIParams params) {
+        if(!AiModelFactory.AIMODEL_TYPE_QWEN.equalsIgnoreCase(params.getProvider())){
+            log.info("除万象模型其他模型暂不支持图生图模式，使用文生图模式，当前模型：" + params.modelName);
+            return this.imageGenerate(prompt,params);
+        }
+        params = ensureParams(params);
+        if (null == params) {
+            throw new IllegalArgumentException("大语言模型参数为空");
+        }
+        if (CollectionUtils.isEmpty(originalImages)) {
+            throw new IllegalArgumentException("原始图片不能为空");
+        }
+
+        AiModelOptions options = params.toModelOptions();
+        Integer imageCount = params.imageCount;
+        //通义万象2.1和2.5走单独的配置
+        if (QwenImageModelEnum.WANX_2_1_IMAGE_EDIT.getModelName().equals(options.getModelName()) || QwenImageModelEnum.WAN_2_5_I2I_PREVIEW.getModelName().equals(options.getModelName())) {
+            return imageEditQwen(prompt, originalImages, options, imageCount);
+        }
+
+        return imageEditDefault(prompt, originalImages.get(0), options, imageCount);
+    }
+
+    /**
+     * 处理其他的图文编辑
+     * 
+     * @param prompt
+     * @param originalImageBase64
+     * @param options
+     * @param imageCount
+     * @return
+     */
+    private List<Map<String, Object>> imageEditDefault(String prompt, String originalImageBase64, AiModelOptions options, Integer imageCount) {
+        // 处理base64前缀，Image.builder().base64Data()通常需要纯base64
+        if (originalImageBase64.contains("base64,")) {
+            originalImageBase64 = originalImageBase64.split("base64,")[1];
+        }
+
+        ImageModel imageModel = AiModelFactory.createImageModel(options);
+        List<Map<String,Object>> result = new ArrayList<>();
+        // 构造输入图片
+        Image inputImage = Image.builder().base64Data(originalImageBase64).build();
+        int count = (imageCount == null || imageCount < 1) ? 1 : imageCount;
+
+        try {
+            for (int i = 0; i < count; i++) {
+                Response<Image> response = imageModel.edit(inputImage, prompt);
+                Image image = response.content();
+                Map<String,Object> item = new HashMap<>();
+                if (StringUtils.isNotEmpty(image.base64Data())) {
+                    item.put("type","base64");
+                    String base64 = image.base64Data();
+                    if (!base64.startsWith("data:")) {
+                        base64 = "data:image/png;base64," + base64;
+                    }
+                    item.put("value", base64);
+                } else if (image.url() != null) {
+                    item.put("type","http");
+                    item.put("value", image.url().toString());
+                }
+                result.add(item);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+        return result;
+    }
+
+    /**
+     * 处理千问的图片编辑
+     *
+     * @param prompt
+     * @param originalImages
+     * @param options
+     * @param imageCount
+     * @return
+     */
+    private List<Map<String, Object>> imageEditQwen(String prompt, List<String> originalImages, AiModelOptions options, Integer imageCount) {
+        // 校验并调整图片尺寸
+        originalImages = checkAndResizeImage(originalImages);
+
+        int count = (imageCount == null || imageCount < 1) ? 1 : imageCount;
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        try {
+
+            ImageSynthesisParam param = ImageSynthesisParam.builder()
+                    .apiKey(options.getApiKey())
+                    .model(StringUtils.isNotEmpty(options.getModelName()) ? options.getModelName() : QwenImageModelEnum.WAN_2_5_I2I_PREVIEW.getModelName())
+                    .prompt(prompt)
+                    .function(ImageSynthesis.ImageEditFunction.DESCRIPTION_EDIT)
+                    .n(count)
+                    .build();
+            if (StringUtils.isNotEmpty(options.getImageSize())) {
+                param.setSize(options.getImageSize());
+            } else {
+                param.setSize("1024*1024");
+            }
+
+            if (QwenImageModelEnum.WAN_2_5_I2I_PREVIEW.getModelName().equals(options.getModelName())) {
+                param.setImages(originalImages);
+            }
+            
+            if (QwenImageModelEnum.WANX_2_1_IMAGE_EDIT.getModelName().equals(options.getModelName())) {
+                param.setBaseImageUrl(originalImages.get(0));
+            }
+
+            ImageSynthesis imageSynthesis = new ImageSynthesis("text2image", options.getBaseUrl());
+            ImageSynthesisResult resultResponse = imageSynthesis.call(param);
+
+            if (resultResponse.getOutput() != null && resultResponse.getOutput().getResults() != null) {
+                for (Map<String, String> item : resultResponse.getOutput().getResults()) {
+                    Map<String, Object> map = new HashMap<>();
+                    if (item.containsKey("url")) {
+                        map.put("type", "http");
+                        map.put("value", item.get("url"));
+                    } else if (item.containsKey("b64_json")) {
+                        map.put("type", "base64");
+                        String b64 = item.get("b64_json");
+                        if (!b64.startsWith("data:")) {
+                            b64 = "data:image/png;base64," + b64;
+                        }
+                        map.put("value", b64);
+                    }
+                    result.add(map);
+                }
+            } else {
+                log.error(resultResponse.getOutput().getMessage());
+            }
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException("Qwen image edit failed: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 校验并调整图片尺寸
+     *
+     * @param base64ImageList
+     * @return
+     */
+    private List<String> checkAndResizeImage(List<String> base64ImageList) {
+        List<String> result = new ArrayList<>();
+        for (String base64Image : base64ImageList) {
+            try {
+                String base64Data = base64Image;
+                if (base64Image.contains("base64,")) {
+                    String[] parts = base64Image.split("base64,");
+                    base64Data = parts[1];
+                }
+
+                // 处理可能存在的换行符
+                base64Data = base64Data.replaceAll("[\\s\r\n]", "");
+
+                byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+                ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
+                BufferedImage image = ImageIO.read(bis);
+                if (image == null) {
+                    log.warn("ImageIO read failed, use original image");
+                    result.add("data:image/png;base64," + base64Image);
+                    continue;
+                }
+
+                int width = image.getWidth();
+                int height = image.getHeight();
+
+                // 阿里Qwen要求高度在 512~4096 之间
+                int minHeight = 512;
+                int maxHeight = 4096;
+
+                if (height >= minHeight && height <= maxHeight) {
+                    result.add("data:image/png;base64," + base64Image);
+                    continue;
+                }
+
+                int newHeight = height;
+                int newWidth = width;
+
+                if (height < minHeight) {
+                    newHeight = minHeight;
+                    newWidth = (int) (width * ((double) minHeight / height));
+                } else if (height > maxHeight) {
+                    newHeight = maxHeight;
+                    newWidth = (int) (width * ((double) maxHeight / height));
+                }
+
+                log.info("Resize image from {}x{} to {}x{}", width, height, newWidth, newHeight);
+
+                BufferedImage outputImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g2d = outputImage.createGraphics();
+                g2d.drawImage(image.getScaledInstance(newWidth, newHeight, 4), 0, 0, null);
+                g2d.dispose();
+
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                // 统一转为png
+                ImageIO.write(outputImage, "png", bos);
+                byte[] newBytes = bos.toByteArray();
+
+                String newBase64 = Base64.getEncoder().encodeToString(newBytes);
+                result.add("data:image/png;base64," + newBase64);
+
+            } catch (Exception e) {
+                log.error("Check and resize image failed: {}", e.getMessage());
+                result.add("data:image/png;base64," + base64Image);
+            }
+        }
+        return result;
+    }
 }

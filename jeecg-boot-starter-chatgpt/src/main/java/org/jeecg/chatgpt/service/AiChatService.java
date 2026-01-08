@@ -5,6 +5,7 @@ import org.jeecg.chatgpt.dto.image.ImageFormat;
 import org.jeecg.chatgpt.dto.image.ImageSize;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Description: AI聊天工具客户端
@@ -61,7 +62,7 @@ public interface AiChatService {
      * @author chenrui
      * @date 2024/1/12 20:14
      */
-    String imageGenerate(String prompt);
+    Map<String,Object> imageGenerate(String prompt);
 
     /**
      * 图片生成
@@ -74,6 +75,6 @@ public interface AiChatService {
      * @author chenrui
      * @date 2024/1/12 20:14
      */
-    List<String> imageGenerate(String prompt, Integer n, ImageSize size, ImageFormat format);
+    List<Map<String,Object>> imageGenerate(String prompt, Integer n, ImageSize size, ImageFormat format);
 
 }

@@ -7,6 +7,7 @@ import org.jeecg.chatgpt.dto.image.ImageSize;
 import org.jeecg.chatgpt.service.AiChatService;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Description: 默认的AI聊天工具
@@ -45,12 +46,12 @@ public class DefaultAiChatService implements AiChatService {
     }
 
     @Override
-    public String imageGenerate(String prompt) {
+    public Map<String,Object> imageGenerate(String prompt) {
         return generalReturn();
     }
 
     @Override
-    public List<String> imageGenerate(String prompt, Integer n, ImageSize size, ImageFormat format) {
+    public List<Map<String,Object>> imageGenerate(String prompt, Integer n, ImageSize size, ImageFormat format) {
         return generalReturn();
     }
 
