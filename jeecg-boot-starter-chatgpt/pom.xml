@@ -5,12 +5,12 @@
     <parent>
         <artifactId>jeecg-boot-starter</artifactId>
         <groupId>org.jeecgframework.boot3</groupId>
-        <version>3.9.0</version>
+        <version>3.9.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jeecg-boot-starter-chatgpt</artifactId>
     <name>jeecg-boot-starter-chatgpt</name>
-    <version>3.9.1-beta2</version>
+    <version>3.9.1</version>
 
     <properties>
         <langchain4j.version>1.9.1</langchain4j.version>
