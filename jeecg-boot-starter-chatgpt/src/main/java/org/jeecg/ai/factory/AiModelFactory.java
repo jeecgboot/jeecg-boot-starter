@@ -5,7 +5,7 @@ import dev.langchain4j.community.model.qianfan.*;
 import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiEmbeddingModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiStreamingChatModel;
-import dev.langchain4j.community.model.zhipu.ZhipuAiImageModel;
+import org.jeecg.ai.custom.zhipu.CustomZhipuAiImageModel;
 import dev.langchain4j.community.model.zhipu.chat.ChatCompletionModel;
 import dev.langchain4j.community.model.zhipu.image.ImageModelName;
 import dev.langchain4j.model.anthropic.AnthropicChatModel;
@@ -552,7 +552,7 @@ public class AiModelFactory {
             case AIMODEL_TYPE_ZHIPU:
                 assertNotEmpty("apiKey不能为空", apiKey);
                 modelName = getString(modelName, ImageModelName.COGVIEW_3.toString());
-                imageModel = ZhipuAiImageModel.builder()
+                CustomZhipuAiImageModel.CustomZhipuAiImageModelBuilder imageModelBuilder = CustomZhipuAiImageModel.builder()
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
                         .model(modelName)
@@ -561,7 +561,12 @@ public class AiModelFactory {
                         .maxRetries(0)
                         .logRequests(true)
                         .logResponses(true)
-                        .build();
+                        .watermarkEnabled(false)
+                        .size(options.getImageSize());
+                if(StringUtils.isNotEmpty(options.getImageSize())){
+                    imageModelBuilder.size(options.getImageSize());
+                }
+                imageModel = imageModelBuilder.build();
                 break;
             case AIMODEL_TYPE_QWEN:
                 assertNotEmpty("apiKey不能为空", apiKey);
