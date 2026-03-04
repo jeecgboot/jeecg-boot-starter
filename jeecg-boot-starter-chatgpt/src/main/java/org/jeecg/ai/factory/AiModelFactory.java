@@ -44,6 +44,7 @@ public class AiModelFactory {
     public static final String AIMODEL_TYPE_DEEPSEEK = "DEEPSEEK";
     public static final String AIMODEL_TYPE_OLLAMA = "OLLAMA";
     public static final String AIMODEL_TYPE_ANTHROPIC = "ANTHROPIC";
+    public static final String AIMODEL_TYPE_XINFERENCE = "XINFERENCE";
 
 
     /**
@@ -89,7 +90,10 @@ public class AiModelFactory {
         ChatModel chatModel = null;
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
-                assertNotEmpty("apiKey不能为空", apiKey);
+            case AIMODEL_TYPE_XINFERENCE:
+                if (!AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider())) {
+                    assertNotEmpty("apiKey不能为空", apiKey);
+                }
                 // 确保baseUrl以v1结尾
                 baseUrl = ensureOpenAiUrlEnd(baseUrl);
                 modelName = getString(modelName, OpenAiChatModelName.GPT_3_5_TURBO.toString());
@@ -273,7 +277,10 @@ public class AiModelFactory {
         StreamingChatModel chatModel = null;
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
-                assertNotEmpty("apiKey不能为空", apiKey);
+            case AIMODEL_TYPE_XINFERENCE:
+                if (!AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider())) {
+                    assertNotEmpty("apiKey不能为空", apiKey);
+                }
                 // 确保baseUrl以v1结尾
                 baseUrl = ensureOpenAiUrlEnd(baseUrl);
                 modelName = getString(modelName, OpenAiChatModelName.GPT_3_5_TURBO.toString());
@@ -443,8 +450,10 @@ public class AiModelFactory {
         int timeout = getInteger(options.getTimeout(),120);
         EmbeddingModel embeddingModel;
         switch (options.getProvider().toUpperCase()) {
-            case AIMODEL_TYPE_OPENAI:
-                assertNotEmpty("apiKey不能为空", apiKey);
+            case AIMODEL_TYPE_XINFERENCE:
+                if (!AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider())) {
+                    assertNotEmpty("apiKey不能为空", apiKey);
+                }
                 // 确保baseUrl以v1结尾
                 baseUrl = ensureOpenAiUrlEnd(baseUrl);
                 modelName = getString(modelName, OpenAiEmbeddingModelName.TEXT_EMBEDDING_ADA_002.toString());
@@ -533,7 +542,10 @@ public class AiModelFactory {
         ImageModel imageModel = null;
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
-                assertNotEmpty("apiKey不能为空", apiKey);
+            case AIMODEL_TYPE_XINFERENCE:
+                if (!AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider())) {
+                    assertNotEmpty("apiKey不能为空", apiKey);
+                }
                 baseUrl = ensureOpenAiUrlEnd(baseUrl);
                 modelName = getString(modelName, OpenAiImageModelName.DALL_E_3.toString());
                 OpenAiImageModel.OpenAiImageModelBuilder builder = OpenAiImageModel.builder()
@@ -544,7 +556,7 @@ public class AiModelFactory {
                         .maxRetries(0)
                         .logRequests(true)
                         .logResponses(true);
-                if(StringUtils.isNotEmpty(options.getImageSize()) && ("dall-e-2".equals(options.getModelName()) || "dall-e-3".equals(options.getModelName()))){
+                if(StringUtils.isNotEmpty(options.getImageSize()) && ("dall-e-2".equals(options.getModelName()) || "dall-e-3".equals(options.getModelName()) || AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider()))){
                     builder.size(options.getImageSize());
                 }
                 imageModel = builder.build();
