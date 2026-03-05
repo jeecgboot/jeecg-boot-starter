@@ -450,6 +450,7 @@ public class AiModelFactory {
         int timeout = getInteger(options.getTimeout(),120);
         EmbeddingModel embeddingModel;
         switch (options.getProvider().toUpperCase()) {
+            case AIMODEL_TYPE_OPENAI:
             case AIMODEL_TYPE_XINFERENCE:
                 if (!AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider())) {
                     assertNotEmpty("apiKey不能为空", apiKey);
