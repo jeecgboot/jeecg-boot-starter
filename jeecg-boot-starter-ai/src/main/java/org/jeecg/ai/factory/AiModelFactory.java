@@ -5,6 +5,8 @@ import dev.langchain4j.community.model.qianfan.*;
 import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiEmbeddingModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiStreamingChatModel;
+import dev.langchain4j.http.client.jdk.JdkHttpClient;
+import dev.langchain4j.http.client.jdk.JdkHttpClientBuilder;
 import org.jeecg.ai.custom.zhipu.CustomZhipuAiImageModel;
 import dev.langchain4j.community.model.zhipu.chat.ChatCompletionModel;
 import dev.langchain4j.community.model.zhipu.image.ImageModelName;
@@ -23,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.Iterator;
 import java.util.Map;
@@ -45,6 +48,7 @@ public class AiModelFactory {
     public static final String AIMODEL_TYPE_OLLAMA = "OLLAMA";
     public static final String AIMODEL_TYPE_ANTHROPIC = "ANTHROPIC";
     public static final String AIMODEL_TYPE_XINFERENCE = "XINFERENCE";
+    public static final String AIMODEL_TYPE_VLLM = "VLLM";
 
 
     /**
@@ -91,7 +95,8 @@ public class AiModelFactory {
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
             case AIMODEL_TYPE_XINFERENCE:
-                if (!AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider())) {
+            case AIMODEL_TYPE_VLLM:
+                if (AIMODEL_TYPE_OPENAI.equalsIgnoreCase(options.getProvider())) {
                     assertNotEmpty("apiKey不能为空", apiKey);
                 }
                 // 确保baseUrl以v1结尾
@@ -113,6 +118,14 @@ public class AiModelFactory {
                         .maxRetries(0);
                 if (null != maxTokens) {
                     openAIBuilder.maxTokens(maxTokens);
+                }
+                //Http是否为1.1版本
+                if(null != options.izHttpVersionOne && options.izHttpVersionOne){
+                    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_1_1);
+                    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
+                            .httpClientBuilder(httpClientBuilder);
+                    openAIBuilder.httpClientBuilder(jdkHttpClientBuilder);
                 }
                 chatModel = openAIBuilder.build();
                 break;
@@ -221,6 +234,14 @@ public class AiModelFactory {
                 if (null != options.getReturnThinking()) {
                     dsBuilder.returnThinking(options.getReturnThinking());
                 }
+                //Http是否为1.1版本
+                if(null != options.izHttpVersionOne && options.izHttpVersionOne){
+                    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_1_1);
+                    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
+                            .httpClientBuilder(httpClientBuilder);
+                    dsBuilder.httpClientBuilder(jdkHttpClientBuilder);
+                }
                 chatModel = dsBuilder.build();
                 break;
             case AIMODEL_TYPE_ANTHROPIC:
@@ -278,7 +299,8 @@ public class AiModelFactory {
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
             case AIMODEL_TYPE_XINFERENCE:
-                if (!AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider())) {
+            case AIMODEL_TYPE_VLLM:
+                if (AIMODEL_TYPE_OPENAI.equalsIgnoreCase(options.getProvider())) {
                     assertNotEmpty("apiKey不能为空", apiKey);
                 }
                 // 确保baseUrl以v1结尾
@@ -299,6 +321,14 @@ public class AiModelFactory {
                         .timeout(Duration.ofSeconds(timeout));
                 if (null != maxTokens) {
                     openAIBuilder.maxTokens(maxTokens);
+                }
+                //Http是否为1.1版本
+                if(null != options.izHttpVersionOne && options.izHttpVersionOne){
+                    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_1_1);
+                    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
+                            .httpClientBuilder(httpClientBuilder);
+                    openAIBuilder.httpClientBuilder(jdkHttpClientBuilder);
                 }
                 chatModel = openAIBuilder.build();
                 break;
@@ -401,6 +431,14 @@ public class AiModelFactory {
                 if (null != options.getReturnThinking()) {
                     dsBuilder.returnThinking(options.getReturnThinking());
                 }
+                //Http是否为1.1版本
+                if(null != options.izHttpVersionOne && options.izHttpVersionOne){
+                    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_1_1);
+                    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
+                            .httpClientBuilder(httpClientBuilder);
+                    dsBuilder.httpClientBuilder(jdkHttpClientBuilder);
+                }
                 chatModel = dsBuilder.build();
                 break;
             case AIMODEL_TYPE_ANTHROPIC:
@@ -452,19 +490,28 @@ public class AiModelFactory {
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
             case AIMODEL_TYPE_XINFERENCE:
-                if (!AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider())) {
+            case AIMODEL_TYPE_VLLM:
+                if (AIMODEL_TYPE_OPENAI.equalsIgnoreCase(options.getProvider())) {
                     assertNotEmpty("apiKey不能为空", apiKey);
                 }
                 // 确保baseUrl以v1结尾
                 baseUrl = ensureOpenAiUrlEnd(baseUrl);
                 modelName = getString(modelName, OpenAiEmbeddingModelName.TEXT_EMBEDDING_ADA_002.toString());
-                embeddingModel = OpenAiEmbeddingModel.builder()
+                OpenAiEmbeddingModel.OpenAiEmbeddingModelBuilder openAiModal = OpenAiEmbeddingModel.builder()
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
                         .modelName(modelName)
                         .timeout(Duration.ofSeconds(timeout))
-                        .maxRetries(0)
-                        .build();
+                        .maxRetries(0);
+                //Http是否为1.1版本
+                if(null != options.izHttpVersionOne && options.izHttpVersionOne){
+                    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_1_1);
+                    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
+                            .httpClientBuilder(httpClientBuilder);
+                    openAiModal.httpClientBuilder(jdkHttpClientBuilder);
+                }
+                embeddingModel = openAiModal.build();
                 break;
             case AIMODEL_TYPE_ZHIPU:
                 assertNotEmpty("apiKey不能为空", apiKey);
@@ -544,7 +591,8 @@ public class AiModelFactory {
         switch (options.getProvider().toUpperCase()) {
             case AIMODEL_TYPE_OPENAI:
             case AIMODEL_TYPE_XINFERENCE:
-                if (!AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider())) {
+            case AIMODEL_TYPE_VLLM:
+                if (AIMODEL_TYPE_OPENAI.equalsIgnoreCase(options.getProvider())) {
                     assertNotEmpty("apiKey不能为空", apiKey);
                 }
                 baseUrl = ensureOpenAiUrlEnd(baseUrl);
@@ -557,8 +605,16 @@ public class AiModelFactory {
                         .maxRetries(0)
                         .logRequests(true)
                         .logResponses(true);
-                if(StringUtils.isNotEmpty(options.getImageSize()) && ("dall-e-2".equals(options.getModelName()) || "dall-e-3".equals(options.getModelName()) || AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider()))){
+                if(StringUtils.isNotEmpty(options.getImageSize()) && ("dall-e-2".equals(options.getModelName()) || "dall-e-3".equals(options.getModelName()) || AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider()) || AIMODEL_TYPE_VLLM.equalsIgnoreCase(options.getProvider()))){
                     builder.size(options.getImageSize());
+                }
+                //Http是否为1.1版本
+                if(null != options.izHttpVersionOne && options.izHttpVersionOne){
+                    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_1_1);
+                    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
+                            .httpClientBuilder(httpClientBuilder);
+                    builder.httpClientBuilder(jdkHttpClientBuilder);
                 }
                 imageModel = builder.build();
                 break;

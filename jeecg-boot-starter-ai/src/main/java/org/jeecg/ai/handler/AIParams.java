@@ -112,6 +112,12 @@ public class AIParams {
      */
     String imageSize;
 
+
+    /**
+     * 是否使用http 1.1协议
+     */
+    Boolean izHttpVersionOne;
+
     public AiModelOptions toModelOptions() {
         return AiModelOptions.builder()
                 .provider(this.getProvider())
@@ -131,6 +137,7 @@ public class AIParams {
                 .enableSearch(this.getEnableSearch())
                 .imageCount(this.getImageCount())
                 .imageSize(this.getImageSize())
+                .izHttpVersionOne(this.getIzHttpVersionOne())
                 .build();
     }
 
