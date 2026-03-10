@@ -49,6 +49,7 @@ public class AiModelFactory {
     public static final String AIMODEL_TYPE_ANTHROPIC = "ANTHROPIC";
     public static final String AIMODEL_TYPE_XINFERENCE = "XINFERENCE";
     public static final String AIMODEL_TYPE_VLLM = "VLLM";
+    public static final String AIMODEL_TYPE_LMSTDIO = "LMSTDIO";
 
 
     /**
@@ -96,6 +97,7 @@ public class AiModelFactory {
             case AIMODEL_TYPE_OPENAI:
             case AIMODEL_TYPE_XINFERENCE:
             case AIMODEL_TYPE_VLLM:
+            case AIMODEL_TYPE_LMSTDIO:
                 if (AIMODEL_TYPE_OPENAI.equalsIgnoreCase(options.getProvider())) {
                     assertNotEmpty("apiKey不能为空", apiKey);
                 }
@@ -300,6 +302,7 @@ public class AiModelFactory {
             case AIMODEL_TYPE_OPENAI:
             case AIMODEL_TYPE_XINFERENCE:
             case AIMODEL_TYPE_VLLM:
+            case AIMODEL_TYPE_LMSTDIO:
                 if (AIMODEL_TYPE_OPENAI.equalsIgnoreCase(options.getProvider())) {
                     assertNotEmpty("apiKey不能为空", apiKey);
                 }
@@ -491,6 +494,7 @@ public class AiModelFactory {
             case AIMODEL_TYPE_OPENAI:
             case AIMODEL_TYPE_XINFERENCE:
             case AIMODEL_TYPE_VLLM:
+            case AIMODEL_TYPE_LMSTDIO:
                 if (AIMODEL_TYPE_OPENAI.equalsIgnoreCase(options.getProvider())) {
                     assertNotEmpty("apiKey不能为空", apiKey);
                 }
@@ -592,6 +596,7 @@ public class AiModelFactory {
             case AIMODEL_TYPE_OPENAI:
             case AIMODEL_TYPE_XINFERENCE:
             case AIMODEL_TYPE_VLLM:
+            case AIMODEL_TYPE_LMSTDIO:
                 if (AIMODEL_TYPE_OPENAI.equalsIgnoreCase(options.getProvider())) {
                     assertNotEmpty("apiKey不能为空", apiKey);
                 }
@@ -605,7 +610,7 @@ public class AiModelFactory {
                         .maxRetries(0)
                         .logRequests(true)
                         .logResponses(true);
-                if(StringUtils.isNotEmpty(options.getImageSize()) && ("dall-e-2".equals(options.getModelName()) || "dall-e-3".equals(options.getModelName()) || AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider()) || AIMODEL_TYPE_VLLM.equalsIgnoreCase(options.getProvider()))){
+                if(StringUtils.isNotEmpty(options.getImageSize()) && ("dall-e-2".equals(options.getModelName()) || "dall-e-3".equals(options.getModelName()) || AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider()) || AIMODEL_TYPE_VLLM.equalsIgnoreCase(options.getProvider()) || AIMODEL_TYPE_LMSTDIO.equalsIgnoreCase(options.getProvider()))){
                     builder.size(options.getImageSize());
                 }
                 //Http是否为1.1版本
