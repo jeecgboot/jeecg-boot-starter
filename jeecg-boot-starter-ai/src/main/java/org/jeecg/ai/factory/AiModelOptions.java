@@ -91,6 +91,11 @@ public class AiModelOptions {
      * 生成图片的数量
      */
     Integer imageCount;
+
+    /**
+     * 是否为http1.1版本
+     */
+    Boolean izHttpVersionOne;
     
     @Override
     public String toString() {
@@ -112,6 +117,7 @@ public class AiModelOptions {
                 ", enableSearch=" + enableSearch +
                 ", imageCount=" + imageCount +
                 ", imageSize=" + imageSize +
+                ", izHttpVersionOne=" + izHttpVersionOne +
                 '}';
     }
 }
