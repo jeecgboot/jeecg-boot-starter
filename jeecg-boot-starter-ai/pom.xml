@@ -13,8 +13,9 @@
     <version>3.9.1.4</version>
 
     <properties>
-        <langchain4j.version>1.9.1</langchain4j.version>
-        <langchain-community.version>1.9.1-beta17</langchain-community.version>
+        <langchain4j.version>1.12.2</langchain4j.version>
+        <langchain4j-mcp.version>1.12.2-beta22</langchain4j-mcp.version>
+        <langchain-community.version>1.12.1-beta21</langchain-community.version>
         <fastjson.version>2.0.57</fastjson.version>
     </properties>
 
@@ -46,7 +47,7 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-mcp</artifactId>
-            <version>1.9.1-beta17</version>
+            <version>${langchain4j-mcp.version}</version>
         </dependency>
         <!-- langChain4j model support -->
         <dependency>
@@ -70,6 +71,11 @@
             <artifactId>langchain4j-community-zhipu-ai</artifactId>
             <version>${langchain-community.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-google-ai-gemini</artifactId>
+            <version>${langchain4j.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>

@@ -50,6 +50,7 @@ public class AiModelFactory {
     public static final String AIMODEL_TYPE_XINFERENCE = "XINFERENCE";
     public static final String AIMODEL_TYPE_VLLM = "VLLM";
     public static final String AIMODEL_TYPE_LMSTDIO = "LMSTDIO";
+    public static final String AIMODEL_TYPE_GOOGLE = "GOOGLE";
 
 
     /**
@@ -265,6 +266,10 @@ public class AiModelFactory {
                 }
                 chatModel = anthropicBuilder.build();
                 break;
+            case AIMODEL_TYPE_GOOGLE:
+                chatModel = GoogleModelBuilder.createChatModel(apiKey, baseUrl, modelName,
+                        temperature, topP, presencePenalty, frequencyPenalty, timeout, maxTokens);
+                break;
         }
         setCache(cacheKey, chatModel);
         return chatModel;
@@ -462,6 +467,10 @@ public class AiModelFactory {
                 }
                 chatModel = anthropicStreamBuilder.build();
                 break;
+            case AIMODEL_TYPE_GOOGLE:
+                chatModel = GoogleModelBuilder.createStreamingChatModel(apiKey, baseUrl, modelName,
+                        temperature, topP, presencePenalty, frequencyPenalty, timeout, maxTokens);
+                break;
         }
         setCache(cacheKey, chatModel);
         return chatModel;
@@ -655,6 +664,9 @@ public class AiModelFactory {
                 }
                 imageModel = wanxBuilder.build();
                 break;
+            case AIMODEL_TYPE_GOOGLE:
+                imageModel = GoogleModelBuilder.createImageModel(options, apiKey, baseUrl, modelName, timeout);
+                break;
             default:
                 throw new RuntimeException("不支持的模型");
         }
@@ -715,7 +727,7 @@ public class AiModelFactory {
      * @date 2025/3/12 20:44
      */
     @Nullable
-    private static String ensureOpenAiUrlEnd(String baseUrl) {
+   public static String ensureOpenAiUrlEnd(String baseUrl) {
         if (StringUtils.isNotEmpty(baseUrl)) {
             if (baseUrl.endsWith("/")) {
                 baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
