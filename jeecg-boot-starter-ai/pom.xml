@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jeecg-boot-starter-ai</artifactId>
     <name>jeecg-boot-starter-ai</name>
-    <version>3.9.1.4</version>
+    <version>3.9.1.6</version>
 
     <properties>
         <langchain4j.version>1.12.2</langchain4j.version>
@@ -71,6 +71,12 @@
             <artifactId>langchain4j-community-zhipu-ai</artifactId>
             <version>${langchain-community.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>error_prone_annotations</artifactId>
+                    <groupId>com.google.errorprone</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
