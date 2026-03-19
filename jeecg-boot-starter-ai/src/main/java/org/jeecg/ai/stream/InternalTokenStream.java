@@ -16,6 +16,7 @@ import dev.langchain4j.service.tool.BeforeToolExecution;
 import dev.langchain4j.service.tool.ToolExecution;
 import dev.langchain4j.service.tool.ToolExecutionResult;
 import dev.langchain4j.service.tool.ToolExecutor;
+import dev.langchain4j.invocation.InvocationContext;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -260,7 +261,17 @@ public class InternalTokenStream implements TokenStream {
                         log.info("[LLMHandler] Executing tool: {} ", toolExecReq.name());
                         String result;
                         try {
-                            result = executor.execute(toolExecReq, chatMemory.id());
+                            //update-begin---author:wangshuai---date:2026-03-17---for:【QQYUN-14935】构建skills插件---
+                            InvocationContext ctx = InvocationContext.builder()
+                                    .chatMemoryId(chatMemory.id())
+                                    .timestampNow()
+                                    .build();
+                            result = executor.executeWithContext(toolExecReq, ctx).resultText();
+                            //update-end---author:wangshuai---date:2026-03-17---for:【QQYUN-14935】构建skills插件---
+                            // 防止工具返回 null 导致 API 报错
+                            if (result == null) {
+                                result = "";
+                            }
                         } catch (Exception e) {
                             log.error("Tool execution failed: {}", e.getMessage(), e);
                             result = "Tool execution failed: " + e.getMessage();

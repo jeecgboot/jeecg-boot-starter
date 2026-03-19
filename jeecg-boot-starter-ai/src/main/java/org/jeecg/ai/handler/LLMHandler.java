@@ -24,9 +24,14 @@ import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.query.Metadata;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.output.ServiceOutputParser;
+import dev.langchain4j.invocation.InvocationContext;
 import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProviderRequest;
 import dev.langchain4j.service.tool.ToolProviderResult;
+import dev.langchain4j.skills.FileSystemSkill;
+import dev.langchain4j.skills.FileSystemSkillLoader;
+import dev.langchain4j.skills.Skills;
+import dev.langchain4j.skills.shell.ShellSkills;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.jeecg.ai.enums.QwenImageModelEnum;
@@ -38,6 +43,8 @@ import org.springframework.util.CollectionUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -147,6 +154,12 @@ public class LLMHandler {
         // MCP工具解析
         fillMcpTools(params, chatMessage, toolSpecifications, toolExecutors);
 
+        // Skills工具解析（activate_skill 模式：模型通过 FunctionCall 自主激活 skill）
+        fillSkillTools(params, chatMessage, toolSpecifications, toolExecutors);
+
+        // Shell Skills工具解析（命令行模式：注册 run_shell_command 工具）
+        fillSkillToolsShellMode(params, chatMessage, toolSpecifications, toolExecutors);
+
         String resp = "";
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
         while (true) {
@@ -167,6 +180,10 @@ public class LLMHandler {
             }
             //update-end---author:wangshuai---date:2025-12-18---for: 工具调用失败后打印日志，不影响整个流程---
             AiMessage aiMessage = response.aiMessage();
+            // 部分 API 不接受 content 为 null 的 AiMessage，对含工具调用但无文本的消息补空字符串
+            if (aiMessage.hasToolExecutionRequests() && aiMessage.text() == null) {
+                aiMessage = AiMessage.from("", aiMessage.toolExecutionRequests());
+            }
             chatMessage.chatMemory.add(aiMessage);
 
             // 没有工具调用，则解析文本并结束
@@ -183,7 +200,19 @@ public class LLMHandler {
                 }
                 log.info("[LLMHandler] Executing tool: {} ", toolExecReq.name());
                 try{
-                    String result = executor.execute(toolExecReq, chatMessage.chatMemory.id());
+                    //update-begin---author:wangshuai---date:2026-03-17---for:【QQYUN-14935】构建skills插件---
+                    // 1. 构建调用上下文，携带会话ID和当前时间戳
+                    InvocationContext ctx = InvocationContext.builder()
+                            .chatMemoryId(chatMessage.chatMemory.id())
+                            .timestampNow()
+                            .build();
+                    // 2. 执行工具并获取结果文本
+                    String result = executor.executeWithContext(toolExecReq, ctx).resultText();
+                    //update-end---author:wangshuai---date:2026-03-17---for:【QQYUN-14935】构建skills插件---
+                    // 防止工具返回 null 导致 API 报错 "expected a string, got null"
+                    if (result == null) {
+                        result = "";
+                    }
                     ToolExecutionResultMessage resultMsg = ToolExecutionResultMessage.from(toolExecReq, result);
                     chatMessage.chatMemory.add(resultMsg);
                 }catch (ToolExecutionException e){
@@ -247,6 +276,18 @@ public class LLMHandler {
         // MCP工具解析
         fillMcpTools(params, chatMessage, toolSpecifications, toolExecutors);
 
+        // Skills工具解析（activate_skill 模式：模型通过 FunctionCall 自主激活 skill）
+        fillSkillTools(params, chatMessage, toolSpecifications, toolExecutors);
+
+        // Shell Skills工具解析（命令行模式：注册 run_shell_command 工具）
+        fillSkillToolsShellMode(params, chatMessage, toolSpecifications, toolExecutors);
+
+        // 判断模型是否支持工具调用（多模态模型如qwen-vl-ocr不支持）
+        if(!isSupportTools(streamingChatModel.defaultRequestParameters())) {
+            toolSpecifications = new ArrayList<>();
+        }
+
+        log.info("[LLMHandler] send streaming message to AI server. message: {}", chatMessage);
         //update-begin---author:wangshuai---date:2025-12-18---for:【QQYUN-14048】【AI】langchain4j 升级到1.9.1---
         return new InternalTokenStream(
                 streamingChatModel,
@@ -292,6 +333,156 @@ public class LLMHandler {
                 }
             }
         }
+    }
+
+    /**
+     * 将 Skills 解析并填充到工具规格与执行器集合中
+     * 自动判断模式：有现有工具时使用 Tool Mode，否则使用 Shell Mode
+     *
+     * @param params             AI参数
+     * @param chatMessage        整理后的消息对象
+     * @param toolSpecifications 现有工具规格集合(将追加)
+     * @param toolExecutors      现有工具执行器集合(将追加)
+     * @author wangshuai
+     * @date 2026/3/16 18:56
+     */
+    private void fillSkillTools(AIParams params,
+                                CollateMsgResp chatMessage,
+                                List<ToolSpecification> toolSpecifications,
+                                Map<String, ToolExecutor> toolExecutors) {
+        if (StringUtils.isEmpty(params.getSkillsDir())) {
+            return;
+        }
+
+        List<FileSystemSkill> fileSystemSkills;
+        try {
+            Path skillsPath = Paths.get(params.getSkillsDir());
+            fileSystemSkills = FileSystemSkillLoader.loadSkills(skillsPath);
+        } catch (Exception e) {
+            log.error("从文件系统加载Skills失败: {}", e.getMessage(), e);
+            return;
+        }
+
+        if (fileSystemSkills.isEmpty()) {
+            return;
+        }
+
+        log.info("[LLMHandler] Skills loaded: {} from {}", fileSystemSkills.size(), params.getSkillsDir());
+
+        // 注册 Skills 提供的全部工具（read_skill_resource、activate_skill 等）
+        // 由模型通过 activate_skill 工具自主决定激活哪个 skill
+        Skills skills = Skills.from(fileSystemSkills);
+        ToolProviderRequest request = new ToolProviderRequest(chatMessage.chatMemory.id(), chatMessage.userMessage);
+        ToolProviderResult result = skills.toolProvider().provideTools(request);
+        if (result != null && result.tools() != null) {
+            for (Map.Entry<ToolSpecification, ToolExecutor> entry : result.tools().entrySet()) {
+                toolSpecifications.add(entry.getKey());
+                toolExecutors.put(entry.getKey().name(), entry.getValue());
+                log.info("[LLMHandler] Skill tool registered: {}", entry.getKey().name());
+            }
+        }
+
+        // 将可用 Skills 列表注入系统消息，让模型知道有哪些 skill 可用以及何时调用
+        // 解决 qwen-plus 等模型不主动调用 activate_skill 的问题
+        String availableSkillsInfo = skills.formatAvailableSkills();
+        String skillsPrompt = "\n\n## 可用技能(Skills)\n" +
+                "你拥有以下技能。当用户的请求匹配到某个技能的描述或触发词时，" +
+                "你必须先调用 `activate_skill` 工具（参数为技能名称）获取详细指令，然后按指令执行。" +
+                "不要跳过 activate_skill 直接回答。\n" +
+                availableSkillsInfo;
+        // 注入运行时上下文（Token、API地址等），供Skill引用
+        if (StringUtils.isNotEmpty(params.getSkillsContext())) {
+            skillsPrompt += "\n\n## Skills运行时上下文\n" + params.getSkillsContext();
+        }
+        injectSkillsPromptToSystemMessage(chatMessage.chatMemory, skillsPrompt);
+    }
+
+    /**
+     * Shell 模式加载 Skills：使用 ShellSkills 将 skill 内容直接注入系统消息，
+     * 并注册 run_shell_command + read_skill_resource 工具，不依赖 activate_skill FunctionCall。
+     * 适用于命令行场景或不支持 FunctionCall 的模型。
+     *
+     * @param params             AI参数（需设置 shellSkillsDir）
+     * @param chatMessage        整理后的消息对象
+     * @param toolSpecifications 现有工具规格集合(将追加)
+     * @param toolExecutors      现有工具执行器集合(将追加)
+     * @author wangshuai
+     * @date 2026/3/18 21:00
+     */
+    private void fillSkillToolsShellMode(AIParams params,
+                                         CollateMsgResp chatMessage,
+                                         List<ToolSpecification> toolSpecifications,
+                                         Map<String, ToolExecutor> toolExecutors) {
+        if (StringUtils.isEmpty(params.getSkillsShellDir())) {
+            return;
+        }
+
+        List<FileSystemSkill> fileSystemSkills;
+        try {
+            Path skillsPath = Paths.get(params.getSkillsShellDir());
+            fileSystemSkills = FileSystemSkillLoader.loadSkills(skillsPath);
+        } catch (Exception e) {
+            log.error("从文件系统加载Shell Skills失败: {}", e.getMessage(), e);
+            return;
+        }
+
+        if (fileSystemSkills.isEmpty()) {
+            return;
+        }
+
+        log.info("[LLMHandler] Skills loaded (Shell Mode): {} from {}", fileSystemSkills.size(), params.getSkillsShellDir());
+
+        // 使用 ShellSkills：注册 run_shell_command 工具（替代 activate_skill FunctionCall）
+        ShellSkills shellSkills = ShellSkills.from(fileSystemSkills);
+        ToolProviderRequest request = new ToolProviderRequest(chatMessage.chatMemory.id(), chatMessage.userMessage);
+        ToolProviderResult result = shellSkills.toolProvider().provideTools(request);
+        if (result != null && result.tools() != null) {
+            for (Map.Entry<ToolSpecification, ToolExecutor> entry : result.tools().entrySet()) {
+                toolSpecifications.add(entry.getKey());
+                toolExecutors.put(entry.getKey().name(), entry.getValue());
+                log.info("[LLMHandler] Shell skill tool registered: {}", entry.getKey().name());
+            }
+        }
+
+        // 将可用 Skills 列表注入系统消息
+        String availableSkillsInfo = shellSkills.formatAvailableSkills();
+        String skillsPrompt = "\n\n## 可用技能(Skills)\n" +
+                "你拥有以下技能。当用户的请求匹配到某个技能的描述或触发词时，" +
+                "请按照技能的指令严格执行，直接产出结果。\n" +
+                availableSkillsInfo;
+        // 注入运行时上下文（Token、API地址等），供Skill引用
+        if (StringUtils.isNotEmpty(params.getSkillsContext())) {
+            skillsPrompt += "\n\n## Skills运行时上下文\n" + params.getSkillsContext();
+        }
+        injectSkillsPromptToSystemMessage(chatMessage.chatMemory, skillsPrompt);
+    }
+
+    /**
+     * 将 Skills 提示注入到 ChatMemory 的系统消息中
+     * 如果已有系统消息则追加，否则新增一条系统消息
+     *
+     * @param chatMemory    消息缓存
+     * @param skillsPrompt  Skills 提示文本
+     * @author wangshuai
+     * @date 2026/3/18 20:00
+     */
+    private void injectSkillsPromptToSystemMessage(ChatMemory chatMemory, String skillsPrompt) {
+        List<ChatMessage> currentMessages = new ArrayList<>(chatMemory.messages());
+        boolean hasSystemMessage = false;
+        for (int i = 0; i < currentMessages.size(); i++) {
+            if (currentMessages.get(i).type() == ChatMessageType.SYSTEM) {
+                SystemMessage existingSystem = (SystemMessage) currentMessages.get(i);
+                currentMessages.set(i, SystemMessage.from(existingSystem.text() + skillsPrompt));
+                hasSystemMessage = true;
+                break;
+            }
+        }
+        if (!hasSystemMessage) {
+            currentMessages.add(0, SystemMessage.from(skillsPrompt));
+        }
+        // 重建 chatMemory
+        chatMemory.clear();
+        currentMessages.forEach(chatMemory::add);
     }
 
     /**
