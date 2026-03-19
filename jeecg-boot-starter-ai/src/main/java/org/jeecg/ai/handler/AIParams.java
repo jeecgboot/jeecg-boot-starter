@@ -97,6 +97,22 @@ public class AIParams {
     List<McpToolProvider> mcpToolProviders;
 
     /**
+     * Skills文件目录路径（文件系统加载，activate_skill 模式）
+     */
+    String skillsDir;
+
+    /**
+     * Shell Skills文件目录路径（命令行模式，run_shell_command）
+     */
+    String skillsShellDir;
+
+    /**
+     * Skills运行时上下文信息（如Token、API地址、租户ID等），
+     * 会被注入到系统消息中供Skill使用
+     */
+    String skillsContext;
+    
+    /**
      * 启用联网搜索
      * for [issues/8781]千问模型，调用时是否可以增加千问模型自己的调用参数，例如允许联网搜索。 #8781
      */
