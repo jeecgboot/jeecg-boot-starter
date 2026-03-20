@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Map;
+
 /**
  * @Description: AI模型创建参数
  * @Author: chenrui
@@ -96,6 +98,11 @@ public class AiModelOptions {
      * 是否为http1.1版本
      */
     Boolean izHttpVersionOne;
+
+    /**
+     * 自定义参数，透传给大模型厂家
+     */
+    Map<String, Object> extraParams;
     
     @Override
     public String toString() {
@@ -118,6 +125,7 @@ public class AiModelOptions {
                 ", imageCount=" + imageCount +
                 ", imageSize=" + imageSize +
                 ", izHttpVersionOne=" + izHttpVersionOne +
+                ", extraParams=" + extraParams +
                 '}';
     }
 }

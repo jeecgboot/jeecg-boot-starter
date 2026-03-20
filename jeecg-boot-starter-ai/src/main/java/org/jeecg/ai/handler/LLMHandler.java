@@ -508,6 +508,8 @@ public class LLMHandler {
         } else {
             throw new IllegalArgumentException("最后一条消息必须是用户消息");
         }
+        // 从extraParams中提取image_url，构建多模态消息（图片+文本）
+        userMessage = appendImageContent(userMessage, params);
 
         // 最大消息数: 系统消息和用户消息也会计数,所以最大消息增加两个
         int maxMsgNumber = 4 + 2;
@@ -568,6 +570,35 @@ public class LLMHandler {
         // 用户消息
         chatMemory.add(userMessage);
         return new CollateMsgResp(chatMemory, augmentationResult, userMessage);
+    }
+
+    /**
+     * 从extraParams中提取image_url，将图片追加到用户消息中构建多模态消息
+     * extraParams格式: {"image_url": {"url": "https://..."}}
+     */
+    private UserMessage appendImageContent(UserMessage userMessage, AIParams params) {
+        if (params == null || params.getExtraParams() == null || !params.getExtraParams().containsKey("image_url")) {
+            return userMessage;
+        }
+        try {
+            Object imageUrlObj = params.getExtraParams().get("image_url");
+            String url = null;
+            if (imageUrlObj instanceof Map) {
+                url = (String) ((Map<?, ?>) imageUrlObj).get("url");
+            } else if (imageUrlObj instanceof String) {
+                url = (String) imageUrlObj;
+            }
+            if (url != null && !url.isEmpty()) {
+                List<Content> contents = new ArrayList<>(userMessage.contents());
+                contents.add(0, ImageContent.from(url));
+                // 从extraParams中移除image_url，避免重复传递到请求参数
+                params.getExtraParams().remove("image_url");
+                return UserMessage.from(contents);
+            }
+        } catch (Exception e) {
+            log.warn("解析extraParams中的image_url失败: {}", e.getMessage());
+        }
+        return userMessage;
     }
 
     /**
