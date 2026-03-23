@@ -134,6 +134,11 @@ public class AIParams {
      */
     Boolean izHttpVersionOne;
 
+    /**
+     * 自定义参数，透传给大模型厂家
+     */
+    Map<String, Object> extraParams;
+
     public AiModelOptions toModelOptions() {
         return AiModelOptions.builder()
                 .provider(this.getProvider())
@@ -154,6 +159,7 @@ public class AIParams {
                 .imageCount(this.getImageCount())
                 .imageSize(this.getImageSize())
                 .izHttpVersionOne(this.getIzHttpVersionOne())
+                .extraParams(this.getExtraParams())
                 .build();
     }
 

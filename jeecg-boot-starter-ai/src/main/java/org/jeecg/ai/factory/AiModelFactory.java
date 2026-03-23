@@ -28,6 +28,7 @@ import java.lang.reflect.Array;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -193,6 +194,10 @@ public class AiModelFactory {
                 }
                 if (null != maxTokens) {
                     qwenBuilder.maxTokens(maxTokens);
+                }
+                Map<String, Object> extraParams = options.getExtraParams();
+                if (null != extraParams && !extraParams.isEmpty()) {
+                    qwenBuilder.defaultRequestParameters(buildQwenRequestParameters(extraParams));
                 }
                 chatModel = qwenBuilder.build();
                 break;
@@ -396,6 +401,10 @@ public class AiModelFactory {
                 }
                 if (null != maxTokens) {
                     qwenBuilder.maxTokens(maxTokens);
+                }
+                Map<String, Object> extraParams = options.getExtraParams();
+                if (null != extraParams && !extraParams.isEmpty()) {
+                    qwenBuilder.defaultRequestParameters(buildQwenRequestParameters(extraParams));
                 }
                 chatModel = qwenBuilder.build();
                 break;
@@ -717,6 +726,40 @@ public class AiModelFactory {
         return false;
     }
 
+    
+
+    /**
+     * 构建Qwen自定义请求参数
+     *
+     * @param extraParams 自定义参数
+     * @return QwenChatRequestParameters
+     */
+    private static QwenChatRequestParameters buildQwenRequestParameters(Map<String, Object> extraParams) {
+        if (extraParams == null) {
+            extraParams = new LinkedHashMap<>();
+        }
+        QwenChatRequestParameters.Builder builder = QwenChatRequestParameters.builder();
+
+        // 提取Qwen SDK专用参数
+        Boolean enableThinking = removeBool(extraParams, "enable_thinking");
+        if (enableThinking != null) {
+            builder.enableThinking(enableThinking);
+        }
+        return builder.build();
+    }
+
+    /**
+     * 从Map中移除并转换为Boolean
+     */
+    private static Boolean removeBool(Map<String, Object> map, String key) {
+        Object val = map.remove(key);
+        if (val instanceof Boolean) {
+            return (Boolean) val;
+        } else if (val instanceof String) {
+            return Boolean.parseBoolean((String) val);
+        }
+        return null;
+    }
 
     /**
      * 确保openai的url以v1结尾
