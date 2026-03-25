@@ -403,9 +403,15 @@ public class AiModelFactory {
                     qwenBuilder.maxTokens(maxTokens);
                 }
                 Map<String, Object> extraParams = options.getExtraParams();
+                QwenChatRequestParameters.Builder qwenParamsBuilder = QwenChatRequestParameters.builder()
+                        .supportIncrementalOutput(true);
                 if (null != extraParams && !extraParams.isEmpty()) {
-                    qwenBuilder.defaultRequestParameters(buildQwenRequestParameters(extraParams));
+                    Boolean enableThinking = removeBool(extraParams, "enable_thinking");
+                    if (enableThinking != null) {
+                        qwenParamsBuilder.enableThinking(enableThinking);
+                    }
                 }
+                qwenBuilder.defaultRequestParameters(qwenParamsBuilder.build());
                 chatModel = qwenBuilder.build();
                 break;
             case AIMODEL_TYPE_OLLAMA:
