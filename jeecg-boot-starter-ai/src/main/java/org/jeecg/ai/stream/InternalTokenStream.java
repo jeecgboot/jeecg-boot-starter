@@ -3,7 +3,10 @@ package org.jeecg.ai.stream;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
+import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
@@ -21,6 +24,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -50,6 +54,8 @@ public class InternalTokenStream implements TokenStream {
     private Consumer<BeforeToolExecution> beforeToolExecutionHandler;
     private Consumer<ChatResponse> onCompleteResponse;
     private Consumer<ChatResponse> onIntermediateResponse;
+    /** 当前轮用户消息快照：用于 ChatMemory 淘汰策略把 UserMessage 删掉后，在 sanitize 阶段回填，避免工具调用丢失原始意图 */
+    private UserMessage currentTurnUserMessage;
 
     public InternalTokenStream(StreamingChatModel model,
                                List<ToolSpecification> toolSpecifications,
@@ -178,6 +184,16 @@ public class InternalTokenStream implements TokenStream {
         if (onRetrieved != null && retrievedContents != null) {
             onRetrieved.accept(retrievedContents);
         }
+        //update-begin---wangshuai---date:20260413  for：[issue/1560]/[issues/9527]AI应用调用千问qwen-plus 大模型 提示messages and prompt must not all null #18-----------
+        // 快照当前轮的 UserMessage（chatMemory 里最后一条 UserMessage），供 sanitize 兜底回填使用
+        List<ChatMessage> initial = chatMemory.messages();
+        for (int i = initial.size() - 1; i >= 0; i--) {
+            if (initial.get(i) instanceof UserMessage) {
+                this.currentTurnUserMessage = (UserMessage) initial.get(i);
+                break;
+            }
+        }
+        //update-end---author:wangshuai ---date:20260413  for：[issue/1560]/[issues/9527]AI应用调用千问qwen-plus 大模型 提示messages and prompt must not all null #18------------
         doChat();
     }
 
@@ -186,7 +202,7 @@ public class InternalTokenStream implements TokenStream {
      */
     private void doChat() {
         ChatRequest.Builder requestBuilder = ChatRequest.builder()
-                .messages(chatMemory.messages());
+                .messages(sanitizeForRequest(chatMemory.messages()));
 
         if (toolSpecifications != null && !toolSpecifications.isEmpty()) {
             requestBuilder.toolSpecifications(toolSpecifications);
@@ -268,9 +284,11 @@ public class InternalTokenStream implements TokenStream {
                                     .build();
                             result = executor.executeWithContext(toolExecReq, ctx).resultText();
                             //update-end---author:wangshuai---date:2026-03-17---for:【QQYUN-14935】构建skills插件---
-                            // 防止工具返回 null 导致 API 报错
-                            if (result == null) {
-                                result = "";
+                            //update-begin---wangshuai---date:20260413  for：[issue/1560]/[issues/9527]AI应用调用千问qwen-plus 大模型 提示messages and prompt must not all null #18-----------
+                            // 防止工具返回 null 或空串导致部分厂商（如 DashScope）API 报错
+                            if (result == null || result.isEmpty()) {
+                                result = "(empty)";
+                            //update-end---wangshuai---date:20260413  for：[issue/1560]/[issues/9527]AI应用调用千问qwen-plus 大模型 提示messages and prompt must not all null #18-----------
                             }
                         } catch (Exception e) {
                             log.error("Tool execution failed: {}", e.getMessage(), e);
@@ -309,6 +327,35 @@ public class InternalTokenStream implements TokenStream {
                 }
             }
         });
+    }
+
+    private List<ChatMessage> sanitizeForRequest(List<ChatMessage> source) {
+        return reinjectUserMessageIfEvicted(source, currentTurnUserMessage);
+    }
+
+    /**
+     * 发请求前兜底：若 ChatMemory 的淘汰策略在工具调用多轮交互中删掉了当前轮的 UserMessage，
+     * 把调用方提供的 UserMessage 快照回填到 SystemMessage 之后、第一条 Ai/Tool 消息之前。
+     * 不改动 chatMemory 本身，避免 Qwen/OpenAI/Claude 校验失败并保留用户原始意图。
+     */
+    public static List<ChatMessage> reinjectUserMessageIfEvicted(List<ChatMessage> source, UserMessage snapshot) {
+        if (snapshot == null || source == null) {
+            return source;
+        }
+        for (ChatMessage m : source) {
+            if (m instanceof UserMessage) {
+                return source;
+            }
+        }
+        int insertAt = 0;
+        while (insertAt < source.size() && source.get(insertAt) instanceof SystemMessage) {
+            insertAt++;
+        }
+        List<ChatMessage> result = new ArrayList<>(source.size() + 1);
+        result.addAll(source.subList(0, insertAt));
+        result.add(snapshot);
+        result.addAll(source.subList(insertAt, source.size()));
+        return result;
     }
 
 }

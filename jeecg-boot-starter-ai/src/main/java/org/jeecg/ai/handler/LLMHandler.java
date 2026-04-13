@@ -161,11 +161,26 @@ public class LLMHandler {
         // Shell Skills工具解析（命令行模式：注册 run_shell_command 工具）
         fillSkillToolsShellMode(params, chatMessage, toolSpecifications, toolExecutors);
 
+        //update-begin---wangshuai---date:20260413  for：[issue/1560]/[issues/9527]AI应用调用千问qwen-plus 大模型 提示messages and prompt must not all null #18-----------
+        // 快照当前轮的 UserMessage，供 sanitize 在 chatMemory 淘汰 User 后回填
+        UserMessage currentTurnUserMessage = null;
+        List<ChatMessage> initialMsgs = chatMessage.chatMemory.messages();
+        for (int i = initialMsgs.size() - 1; i >= 0; i--) {
+            if (initialMsgs.get(i) instanceof UserMessage) {
+                currentTurnUserMessage = (UserMessage) initialMsgs.get(i);
+                break;
+            }
+        }
+        //update-end---wangshuai---date:20260413  for：[issue/1560]/[issues/9527]AI应用调用千问qwen-plus 大模型 提示messages and prompt must not all null #18-----------
+
         String resp = "";
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
         while (true) {
             ChatRequest.Builder requestBuilder = ChatRequest.builder()
-                    .messages(chatMessage.chatMemory.messages());
+                    //update-begin---wangshuai---date:20260413  for：[issue/1560]/[issues/9527]AI应用调用千问qwen-plus 大模型 提示messages and prompt must not all null #18-----------
+                    .messages(org.jeecg.ai.stream.InternalTokenStream.reinjectUserMessageIfEvicted(
+                            chatMessage.chatMemory.messages(), currentTurnUserMessage));
+                    //update-end---wangshuai---date:20260413  for：[issue/1560]/[issues/9527]AI应用调用千问qwen-plus 大模型 提示messages and prompt must not all null #18-----------
 
             // 判断模型是否支持工具调用
             if(isSupportTools(chatModel.defaultRequestParameters())) {
