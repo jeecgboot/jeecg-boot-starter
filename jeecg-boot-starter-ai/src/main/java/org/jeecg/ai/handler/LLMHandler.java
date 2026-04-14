@@ -15,6 +15,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.request.ChatRequestParameters;
+import dev.langchain4j.community.model.dashscope.QwenChatRequestParameters;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.output.Response;
@@ -160,11 +161,26 @@ public class LLMHandler {
         // Shell Skills工具解析（命令行模式：注册 run_shell_command 工具）
         fillSkillToolsShellMode(params, chatMessage, toolSpecifications, toolExecutors);
 
+        //update-begin---wangshuai---date:20260413  for：[issue/1560]/[issues/9527]AI应用调用千问qwen-plus 大模型 提示messages and prompt must not all null #18-----------
+        // 快照当前轮的 UserMessage，供 sanitize 在 chatMemory 淘汰 User 后回填
+        UserMessage currentTurnUserMessage = null;
+        List<ChatMessage> initialMsgs = chatMessage.chatMemory.messages();
+        for (int i = initialMsgs.size() - 1; i >= 0; i--) {
+            if (initialMsgs.get(i) instanceof UserMessage) {
+                currentTurnUserMessage = (UserMessage) initialMsgs.get(i);
+                break;
+            }
+        }
+        //update-end---wangshuai---date:20260413  for：[issue/1560]/[issues/9527]AI应用调用千问qwen-plus 大模型 提示messages and prompt must not all null #18-----------
+
         String resp = "";
         log.info("[LLMHandler] send message to AI server. message: {}", chatMessage);
         while (true) {
             ChatRequest.Builder requestBuilder = ChatRequest.builder()
-                    .messages(chatMessage.chatMemory.messages());
+                    //update-begin---wangshuai---date:20260413  for：[issue/1560]/[issues/9527]AI应用调用千问qwen-plus 大模型 提示messages and prompt must not all null #18-----------
+                    .messages(org.jeecg.ai.stream.InternalTokenStream.reinjectUserMessageIfEvicted(
+                            chatMessage.chatMemory.messages(), currentTurnUserMessage));
+                    //update-end---wangshuai---date:20260413  for：[issue/1560]/[issues/9527]AI应用调用千问qwen-plus 大模型 提示messages and prompt must not all null #18-----------
 
             // 判断模型是否支持工具调用
             if(isSupportTools(chatModel.defaultRequestParameters())) {
@@ -237,6 +253,10 @@ public class LLMHandler {
     private boolean isSupportTools(ChatRequestParameters parameters) {
         String modelName = parameters.modelName();
         boolean isMultimodalModel = modelName.contains("-vl-") || modelName.contains("-audio-") || modelName.contains("-omni-");
+        // 通过QwenChatRequestParameters的isMultimodalModel标记判断（如qwen3.5-plus配置了image_url）
+        if (!isMultimodalModel && parameters instanceof QwenChatRequestParameters qwenParams) {
+            isMultimodalModel = Boolean.TRUE.equals(qwenParams.isMultimodalModel());
+        }
         // 多模态模型不支持工具调用
         return !isMultimodalModel;
     }
@@ -575,12 +595,22 @@ public class LLMHandler {
     /**
      * 从extraParams中提取image_url，将图片追加到用户消息中构建多模态消息
      * extraParams格式: {"image_url": {"url": "https://..."}}
+     * 如果对话历史中已存在图片内容，则仅移除extraParams中的image_url，不再重复追加
      */
     private UserMessage appendImageContent(UserMessage userMessage, AIParams params) {
         if (params == null || params.getExtraParams() == null || !params.getExtraParams().containsKey("image_url")) {
             return userMessage;
         }
         try {
+            //update-begin---author:wangshuai---date:2026-03-30---for:对话中已存在图片时，移除extraParams中的image_url避免重复---
+            // 检查当前用户消息是否已包含图片内容（如用户通过聊天界面上传了图片）
+            boolean hasImageInContent = hasImageInContent(userMessage);
+            if (hasImageInContent) {
+                // 消息中已有图片，仅移除extraParams中的image_url，不再重复追加
+                params.getExtraParams().remove("image_url");
+                return userMessage;
+            }
+            //update-end---author:wangshuai---date:2026-03-30---for:对话中已存在图片时，移除extraParams中的image_url避免重复---
             Object imageUrlObj = params.getExtraParams().get("image_url");
             String url = null;
             if (imageUrlObj instanceof Map) {
@@ -599,6 +629,23 @@ public class LLMHandler {
             log.warn("解析extraParams中的image_url失败: {}", e.getMessage());
         }
         return userMessage;
+    }
+
+    /**
+     * 检查当前对话是否包含图片内容
+     */
+    private boolean hasImageInContent(ChatMessage userMessage) {
+        if (userMessage == null) {
+            return false;
+        }
+        if (userMessage instanceof UserMessage um) {
+            for (Content content : um.contents()) {
+                if (content instanceof ImageContent) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

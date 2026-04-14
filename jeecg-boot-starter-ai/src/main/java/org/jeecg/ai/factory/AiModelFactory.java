@@ -81,6 +81,14 @@ public class AiModelFactory {
         String cacheKey = options.toString();
         Object cachedModel = getCache(cacheKey);
         if (cachedModel != null) {
+            //update-begin---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
+            if (AIMODEL_TYPE_QWEN.equalsIgnoreCase(options.getProvider())) {
+                Map<String, Object> ep = options.getExtraParams();
+                if (ep != null && Boolean.TRUE.equals(ep.get("incremental_output"))) {
+                    setQwenIncrementalOutput((QwenChatModel) cachedModel);
+                }
+            }
+            //update-end---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
             return (ChatModel) cachedModel;
         }
         String apiKey = options.getApiKey();
@@ -176,7 +184,10 @@ public class AiModelFactory {
             case AIMODEL_TYPE_QWEN:
                 assertNotEmpty("apiKey不能为空", apiKey);
                 modelName = getString(modelName, QwenModelName.QWEN_PLUS);
-                boolean isMultiModal = modelName.contains("vl-") || modelName.contains("audio-") || modelName.contains("omni-");
+                //update-begin---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
+                boolean hasImageUrl = options.getExtraParams() != null && options.getExtraParams().containsKey("image_url");
+                boolean isMultiModal = modelName.contains("vl-") || modelName.contains("audio-") || modelName.contains("omni-") || hasImageUrl;
+                //update-end---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
                 boolean enableSearch = getBool(options.getEnableSearch(), false);
                 QwenChatModel.QwenChatModelBuilder qwenBuilder = QwenChatModel.builder()
                         .apiKey(apiKey)
@@ -187,7 +198,7 @@ public class AiModelFactory {
                         // 多样性  0-1 step 0.1
                         .topP(topP)
                         .enableSearch(enableSearch);
-                if(!(modelName.contains("-vl-") || modelName.contains("-audio-") || modelName.contains("-omni-"))){
+                if(!isMultiModal){
                     // 非多模态模型才支持设置重复惩罚
                     // 重复惩罚
                     qwenBuilder.repetitionPenalty((float) repetitionPenalty);
@@ -196,10 +207,17 @@ public class AiModelFactory {
                     qwenBuilder.maxTokens(maxTokens);
                 }
                 Map<String, Object> extraParams = options.getExtraParams();
+                // 先读取 incremental_output（在 buildQwenRequestParameters 之前，因为它内部会 remove 掉这个 key）
+                Boolean incrementalOutput = extraParams != null ? (Boolean) extraParams.get("incremental_output") : null;
                 if (null != extraParams && !extraParams.isEmpty()) {
                     qwenBuilder.defaultRequestParameters(buildQwenRequestParameters(extraParams));
                 }
                 chatModel = qwenBuilder.build();
+                //update-begin---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
+                if (Boolean.TRUE.equals(incrementalOutput)) {
+                    setQwenIncrementalOutput((QwenChatModel) chatModel);
+                }
+                //update-end---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
                 break;
             case AIMODEL_TYPE_OLLAMA:
                 assertNotEmpty("baseUrl不能为空", baseUrl);
@@ -383,6 +401,8 @@ public class AiModelFactory {
             case AIMODEL_TYPE_QWEN:
                 assertNotEmpty("apiKey不能为空", apiKey);
                 modelName = getString(modelName, QwenModelName.QWEN_PLUS);
+                boolean hasImageUrlStream = options.getExtraParams() != null && options.getExtraParams().containsKey("image_url");
+                boolean isMultiModalStream = modelName.contains("-vl-") || modelName.contains("-audio-") || modelName.contains("-omni-") || hasImageUrlStream;
                 Boolean enableSearch = getBool(options.getEnableSearch(), false);
                 QwenStreamingChatModel.QwenStreamingChatModelBuilder qwenBuilder = QwenStreamingChatModel.builder()
                         .apiKey(apiKey)
@@ -394,7 +414,7 @@ public class AiModelFactory {
                         .topP(topP)
                         // 启用联网搜索
                         .enableSearch(enableSearch);
-                if(!(modelName.contains("-vl-") || modelName.contains("-audio-") || modelName.contains("-omni-"))){
+                if(!isMultiModalStream){
                     // 非多模态模型才支持设置重复惩罚
                     // 重复惩罚
                     qwenBuilder.repetitionPenalty((float) repetitionPenalty);
@@ -745,7 +765,28 @@ public class AiModelFactory {
         if (enableThinking != null) {
             builder.enableThinking(enableThinking);
         }
+        //update-begin---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
+        // extraParams中包含image_url时，标记为多模态模型，使langchain4j走多模态路径
+        if (extraParams.containsKey("image_url")) {
+            builder.isMultimodalModel(true);
+        }
+        // 多模态模型（如qwen3.5-plus）要求incremental_output=true，否则API会报错
+        Boolean incrementalOutput = removeBool(extraParams, "incremental_output");
+        if (Boolean.TRUE.equals(incrementalOutput)) {
+            builder.supportIncrementalOutput(true);
+        }
+        //update-end---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
         return builder.build();
+    }
+
+    /**
+     * 设置QwenChatModel强制incrementalOutput=true。
+     * langchain4j-dashscope在非流式调用中硬编码了incrementalOutput=false，
+     * 但DashScope API部分模型（如qwen-vl-ocr、qwen3.5-plus等）要求该参数必须为true。
+     */
+    private static void setQwenIncrementalOutput(QwenChatModel model) {
+        model.setGenerationParamCustomizer(builder -> builder.incrementalOutput(true));
+        model.setMultimodalConversationParamCustomizer(builder -> builder.incrementalOutput(true));
     }
 
     /**
