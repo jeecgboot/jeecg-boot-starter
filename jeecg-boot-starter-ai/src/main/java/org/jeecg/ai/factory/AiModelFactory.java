@@ -260,6 +260,14 @@ public class AiModelFactory {
                 if (null != options.getReturnThinking()) {
                     dsBuilder.returnThinking(options.getReturnThinking());
                 }
+                //update-begin---author:scott ---date:20260429  for：[issues/9585]DeepSeek大模型切换为新发布deepseek-v4-flash，流程中调用出现异常------------
+                // sendThinking: 把上一轮 AiMessage.thinking 以 reasoning_content 字段回传到下次请求，
+                // DeepSeek 推理模型(deepseek-reasoner/deepseek-v4-flash 等)在工具调用多轮对话中必须开启，
+                // 是否启用由调用方按模型类型决定，starter 仅做透传不做模型判断，避免影响 deepseek-chat 等非推理模型
+                if (null != options.getSendThinking()) {
+                    dsBuilder.sendThinking(options.getSendThinking());
+                }
+                //update-end---author:scott ---date:20260429  for：[issues/9585]DeepSeek大模型切换为新发布deepseek-v4-flash，流程中调用出现异常------------
                 //Http是否为1.1版本
                 if(null != options.izHttpVersionOne && options.izHttpVersionOne){
                     HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
@@ -468,6 +476,14 @@ public class AiModelFactory {
                 if (null != options.getReturnThinking()) {
                     dsBuilder.returnThinking(options.getReturnThinking());
                 }
+                //update-begin---author:scott ---date:20260429  for：[issues/9585]DeepSeek大模型切换为新发布deepseek-v4-flash，流程中调用出现异常------------
+                // sendThinking: 把上一轮 AiMessage.thinking 以 reasoning_content 字段回传到下次请求，
+                // DeepSeek 推理模型(deepseek-reasoner/deepseek-v4-flash 等)在工具调用多轮对话中必须开启，
+                // 是否启用由调用方按模型类型决定，starter 仅做透传不做模型判断，避免影响 deepseek-chat 等非推理模型
+                if (null != options.getSendThinking()) {
+                    dsBuilder.sendThinking(options.getSendThinking());
+                }
+                //update-end---author:scott ---date:20260429  for：[issues/9585]DeepSeek大模型切换为新发布deepseek-v4-flash，流程中调用出现异常------------
                 //Http是否为1.1版本
                 if(null != options.izHttpVersionOne && options.izHttpVersionOne){
                     HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()

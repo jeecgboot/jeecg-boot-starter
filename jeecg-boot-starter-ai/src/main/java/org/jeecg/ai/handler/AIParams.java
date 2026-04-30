@@ -86,6 +86,15 @@ public class AIParams {
      */
     Boolean returnThinking;
 
+    //update-begin---author:scott ---date:20260429  for：[issues/9585]DeepSeek大模型切换为新发布deepseek-v4-flash，流程中调用出现异常------------
+    /**
+     * 把上一轮 AI 消息的 thinking 以 reasoning_content 字段回传到下次请求，
+     * 用于 DeepSeek 推理模型(deepseek-reasoner/deepseek-v4-flash 等)的多轮工具调用场景。
+     * 仅在调用方按模型类型判定为推理模型时启用，对非推理模型(如 deepseek-chat)应保持 null/false。
+     */
+    Boolean sendThinking;
+    //update-end---author:scott ---date:20260429  for：[issues/9585]DeepSeek大模型切换为新发布deepseek-v4-flash，流程中调用出现异常------------
+
     /**
      * FunctionCall工具集合
      */
@@ -155,6 +164,7 @@ public class AIParams {
                 .similarity(this.getSimilarity())
                 .timeout(this.getTimeout())
                 .returnThinking(this.getReturnThinking())
+                .sendThinking(this.getSendThinking())
                 .enableSearch(this.getEnableSearch())
                 .imageCount(this.getImageCount())
                 .imageSize(this.getImageSize())
