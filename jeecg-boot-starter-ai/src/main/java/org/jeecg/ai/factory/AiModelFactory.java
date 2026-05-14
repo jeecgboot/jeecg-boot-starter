@@ -241,7 +241,7 @@ public class AiModelFactory {
                 baseUrl = getString(baseUrl, "https://api.deepseek.com/v1");
                 // 确保baseUrl以v1结尾
                 baseUrl = ensureOpenAiUrlEnd(baseUrl);
-                modelName = getString(modelName, "deepseek-chat");
+                modelName = getString(modelName, "deepseek-v4-flash");
                 OpenAiChatModel.OpenAiChatModelBuilder dsBuilder = OpenAiChatModel.builder()
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
@@ -459,7 +459,7 @@ public class AiModelFactory {
                 baseUrl = getString(baseUrl, "https://api.deepseek.com/v1");
                 // 确保baseUrl以v1结尾
                 baseUrl = ensureOpenAiUrlEnd(baseUrl);
-                modelName = getString(modelName, "deepseek-chat");
+                modelName = getString(modelName, "deepseek-v4-flash");
                 OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder dsBuilder = OpenAiStreamingChatModel.builder()
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
@@ -767,7 +767,7 @@ public class AiModelFactory {
         return false;
     }
 
-    
+
 
     /**
      * 构建Qwen自定义请求参数
@@ -858,7 +858,7 @@ public class AiModelFactory {
      * @date 2025/3/12 20:44
      */
     @Nullable
-   public static String ensureOpenAiUrlEnd(String baseUrl) {
+    public static String ensureOpenAiUrlEnd(String baseUrl) {
         if (StringUtils.isNotEmpty(baseUrl)) {
             if (baseUrl.endsWith("/")) {
                 baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
