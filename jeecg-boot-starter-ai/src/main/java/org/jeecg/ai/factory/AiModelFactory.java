@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * AI模型工厂
@@ -276,6 +277,8 @@ public class AiModelFactory {
                             .httpClientBuilder(httpClientBuilder);
                     dsBuilder.httpClientBuilder(jdkHttpClientBuilder);
                 }
+                // 处理并传递 DeepSeek 的额外参数
+                applyDeepSeekExtraParams(options.getExtraParams(), dsBuilder::reasoningEffort, dsBuilder::customParameters);
                 chatModel = dsBuilder.build();
                 break;
             case AIMODEL_TYPE_ANTHROPIC:
@@ -492,6 +495,8 @@ public class AiModelFactory {
                             .httpClientBuilder(httpClientBuilder);
                     dsBuilder.httpClientBuilder(jdkHttpClientBuilder);
                 }
+                // 处理并传递 DeepSeek 的额外参数
+                applyDeepSeekExtraParams(options.getExtraParams(), dsBuilder::reasoningEffort, dsBuilder::customParameters);
                 chatModel = dsBuilder.build();
                 break;
             case AIMODEL_TYPE_ANTHROPIC:
@@ -816,6 +821,32 @@ public class AiModelFactory {
             return Boolean.parseBoolean((String) val);
         }
         return null;
+    }
+
+    /**
+     * 将 extraParams 透传到 DeepSeek（OpenAI 兼容协议）的 builder：
+     * reasoning_effort 走 builder 标准方法，其余键（如 thinking）经 customParameters 进请求体顶层。
+     * 非流式/流式 builder 没有公共父类，通过传 setter 方法引用解耦。
+     *
+     * @author sjlei
+     * @date 2026-5-14
+     */
+    private static void applyDeepSeekExtraParams(
+            Map<String, Object> extraParams,
+            Consumer<String> reasoningEffortSetter,
+            Consumer<Map<String, Object>> customParametersSetter
+    ) {
+        if (extraParams == null || extraParams.isEmpty()) {
+            return;
+        }
+        Map<String, Object> copy = new LinkedHashMap<>(extraParams);
+        Object effort = copy.remove("reasoning_effort");
+        if (effort instanceof String) {
+            reasoningEffortSetter.accept((String) effort);
+        }
+        if (!copy.isEmpty()) {
+            customParametersSetter.accept(copy);
+        }
     }
 
     /**
