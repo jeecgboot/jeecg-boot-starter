@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * AI模型工厂
@@ -240,7 +241,7 @@ public class AiModelFactory {
                 baseUrl = getString(baseUrl, "https://api.deepseek.com/v1");
                 // 确保baseUrl以v1结尾
                 baseUrl = ensureOpenAiUrlEnd(baseUrl);
-                modelName = getString(modelName, "deepseek-chat");
+                modelName = getString(modelName, "deepseek-v4-flash");
                 OpenAiChatModel.OpenAiChatModelBuilder dsBuilder = OpenAiChatModel.builder()
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
@@ -276,6 +277,8 @@ public class AiModelFactory {
                             .httpClientBuilder(httpClientBuilder);
                     dsBuilder.httpClientBuilder(jdkHttpClientBuilder);
                 }
+                // 处理并传递 DeepSeek 的额外参数
+                applyDeepSeekExtraParams(options.getExtraParams(), dsBuilder::reasoningEffort, dsBuilder::customParameters);
                 chatModel = dsBuilder.build();
                 break;
             case AIMODEL_TYPE_ANTHROPIC:
@@ -456,7 +459,7 @@ public class AiModelFactory {
                 baseUrl = getString(baseUrl, "https://api.deepseek.com/v1");
                 // 确保baseUrl以v1结尾
                 baseUrl = ensureOpenAiUrlEnd(baseUrl);
-                modelName = getString(modelName, "deepseek-chat");
+                modelName = getString(modelName, "deepseek-v4-flash");
                 OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder dsBuilder = OpenAiStreamingChatModel.builder()
                         .apiKey(apiKey)
                         .baseUrl(baseUrl)
@@ -492,6 +495,8 @@ public class AiModelFactory {
                             .httpClientBuilder(httpClientBuilder);
                     dsBuilder.httpClientBuilder(jdkHttpClientBuilder);
                 }
+                // 处理并传递 DeepSeek 的额外参数
+                applyDeepSeekExtraParams(options.getExtraParams(), dsBuilder::reasoningEffort, dsBuilder::customParameters);
                 chatModel = dsBuilder.build();
                 break;
             case AIMODEL_TYPE_ANTHROPIC:
@@ -762,7 +767,7 @@ public class AiModelFactory {
         return false;
     }
 
-    
+
 
     /**
      * 构建Qwen自定义请求参数
@@ -819,6 +824,32 @@ public class AiModelFactory {
     }
 
     /**
+     * 将 extraParams 透传到 DeepSeek（OpenAI 兼容协议）的 builder：
+     * reasoning_effort 走 builder 标准方法，其余键（如 thinking）经 customParameters 进请求体顶层。
+     * 非流式/流式 builder 没有公共父类，通过传 setter 方法引用解耦。
+     *
+     * @author sjlei
+     * @date 2026-5-14
+     */
+    private static void applyDeepSeekExtraParams(
+            Map<String, Object> extraParams,
+            Consumer<String> reasoningEffortSetter,
+            Consumer<Map<String, Object>> customParametersSetter
+    ) {
+        if (extraParams == null || extraParams.isEmpty()) {
+            return;
+        }
+        Map<String, Object> copy = new LinkedHashMap<>(extraParams);
+        Object effort = copy.remove("reasoning_effort");
+        if (effort instanceof String) {
+            reasoningEffortSetter.accept((String) effort);
+        }
+        if (!copy.isEmpty()) {
+            customParametersSetter.accept(copy);
+        }
+    }
+
+    /**
      * 确保openai的url以v1结尾
      *
      * @param baseUrl
@@ -827,7 +858,7 @@ public class AiModelFactory {
      * @date 2025/3/12 20:44
      */
     @Nullable
-   public static String ensureOpenAiUrlEnd(String baseUrl) {
+    public static String ensureOpenAiUrlEnd(String baseUrl) {
         if (StringUtils.isNotEmpty(baseUrl)) {
             if (baseUrl.endsWith("/")) {
                 baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
