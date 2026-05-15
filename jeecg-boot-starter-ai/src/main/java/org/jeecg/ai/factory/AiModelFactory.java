@@ -863,9 +863,14 @@ public class AiModelFactory {
             if (baseUrl.endsWith("/")) {
                 baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
             }
-            if (!baseUrl.endsWith("v1")) {
-                baseUrl = baseUrl + (baseUrl.endsWith("/") ? "" : "/") + "v1";
+            //update-begin---author:jeecg-dev ---date:2026-05-15  for：【issues/9635】智谱等 baseUrl 以 /v4、/v3 结尾被错误追加 /v1 导致 404-----------
+            // 仅当 baseUrl 末尾没有 /v数字 版本段时才补 /v1
+            // 例：https://open.bigmodel.cn/api/paas/v4 -> 保持原样（之前会被改成 .../v4/v1）
+            //     https://api.deepseek.com            -> 补成 .../v1
+            if (!baseUrl.matches(".*/v\\d+$")) {
+                baseUrl = baseUrl + "/v1";
             }
+            //update-end---author:jeecg-dev ---date:2026-05-15  for：【issues/9635】智谱等 baseUrl 以 /v4、/v3 结尾被错误追加 /v1 导致 404-----------
         }
         return baseUrl;
     }
