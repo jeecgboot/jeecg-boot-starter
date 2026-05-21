@@ -5,8 +5,12 @@ import dev.langchain4j.community.model.qianfan.*;
 import dev.langchain4j.community.model.zhipu.ZhipuAiChatModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiEmbeddingModel;
 import dev.langchain4j.community.model.zhipu.ZhipuAiStreamingChatModel;
+import dev.langchain4j.http.client.HttpClientBuilder;
 import dev.langchain4j.http.client.jdk.JdkHttpClient;
 import dev.langchain4j.http.client.jdk.JdkHttpClientBuilder;
+import dev.langchain4j.http.client.okhttp.OkHttpClientBuilder;
+import okhttp3.ConnectionPool;
+import okhttp3.OkHttpClient;
 import org.jeecg.ai.custom.zhipu.CustomZhipuAiImageModel;
 import dev.langchain4j.community.model.zhipu.chat.ChatCompletionModel;
 import dev.langchain4j.community.model.zhipu.image.ImageModelName;
@@ -31,6 +35,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -132,14 +137,7 @@ public class AiModelFactory {
                 if (null != maxTokens) {
                     openAIBuilder.maxTokens(maxTokens);
                 }
-                //Http是否为1.1版本
-                if(null != options.izHttpVersionOne && options.izHttpVersionOne){
-                    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_1_1);
-                    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
-                            .httpClientBuilder(httpClientBuilder);
-                    openAIBuilder.httpClientBuilder(jdkHttpClientBuilder);
-                }
+                openAIBuilder.httpClientBuilder(pickHttpClientBuilder(options, timeout));
                 chatModel = openAIBuilder.build();
                 break;
             case AIMODEL_TYPE_ZHIPU:
@@ -269,14 +267,7 @@ public class AiModelFactory {
                     dsBuilder.sendThinking(options.getSendThinking());
                 }
                 //update-end---author:scott ---date:20260429  for：[issues/9585]DeepSeek大模型切换为新发布deepseek-v4-flash，流程中调用出现异常------------
-                //Http是否为1.1版本
-                if(null != options.izHttpVersionOne && options.izHttpVersionOne){
-                    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_1_1);
-                    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
-                            .httpClientBuilder(httpClientBuilder);
-                    dsBuilder.httpClientBuilder(jdkHttpClientBuilder);
-                }
+                dsBuilder.httpClientBuilder(pickHttpClientBuilder(options, timeout));
                 // 处理并传递 DeepSeek 的额外参数
                 applyDeepSeekExtraParams(options.getExtraParams(), dsBuilder::reasoningEffort, dsBuilder::customParameters);
                 chatModel = dsBuilder.build();
@@ -364,14 +355,7 @@ public class AiModelFactory {
                 if (null != maxTokens) {
                     openAIBuilder.maxTokens(maxTokens);
                 }
-                //Http是否为1.1版本
-                if(null != options.izHttpVersionOne && options.izHttpVersionOne){
-                    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_1_1);
-                    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
-                            .httpClientBuilder(httpClientBuilder);
-                    openAIBuilder.httpClientBuilder(jdkHttpClientBuilder);
-                }
+                openAIBuilder.httpClientBuilder(pickHttpClientBuilder(options, timeout));
                 chatModel = openAIBuilder.build();
                 break;
             case AIMODEL_TYPE_ZHIPU:
@@ -487,14 +471,7 @@ public class AiModelFactory {
                     dsBuilder.sendThinking(options.getSendThinking());
                 }
                 //update-end---author:scott ---date:20260429  for：[issues/9585]DeepSeek大模型切换为新发布deepseek-v4-flash，流程中调用出现异常------------
-                //Http是否为1.1版本
-                if(null != options.izHttpVersionOne && options.izHttpVersionOne){
-                    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_1_1);
-                    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
-                            .httpClientBuilder(httpClientBuilder);
-                    dsBuilder.httpClientBuilder(jdkHttpClientBuilder);
-                }
+                dsBuilder.httpClientBuilder(pickHttpClientBuilder(options, timeout));
                 // 处理并传递 DeepSeek 的额外参数
                 applyDeepSeekExtraParams(options.getExtraParams(), dsBuilder::reasoningEffort, dsBuilder::customParameters);
                 chatModel = dsBuilder.build();
@@ -566,14 +543,7 @@ public class AiModelFactory {
                         .modelName(modelName)
                         .timeout(Duration.ofSeconds(timeout))
                         .maxRetries(0);
-                //Http是否为1.1版本
-                if(null != options.izHttpVersionOne && options.izHttpVersionOne){
-                    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_1_1);
-                    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
-                            .httpClientBuilder(httpClientBuilder);
-                    openAiModal.httpClientBuilder(jdkHttpClientBuilder);
-                }
+                openAiModal.httpClientBuilder(pickHttpClientBuilder(options, timeout));
                 embeddingModel = openAiModal.build();
                 break;
             case AIMODEL_TYPE_ZHIPU:
@@ -672,14 +642,7 @@ public class AiModelFactory {
                 if(StringUtils.isNotEmpty(options.getImageSize()) && ("dall-e-2".equals(options.getModelName()) || "dall-e-3".equals(options.getModelName()) || AIMODEL_TYPE_XINFERENCE.equalsIgnoreCase(options.getProvider()) || AIMODEL_TYPE_VLLM.equalsIgnoreCase(options.getProvider()) || AIMODEL_TYPE_LMSTDIO.equalsIgnoreCase(options.getProvider()))){
                     builder.size(options.getImageSize());
                 }
-                //Http是否为1.1版本
-                if(null != options.izHttpVersionOne && options.izHttpVersionOne){
-                    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_1_1);
-                    JdkHttpClientBuilder jdkHttpClientBuilder = JdkHttpClient.builder()
-                            .httpClientBuilder(httpClientBuilder);
-                    builder.httpClientBuilder(jdkHttpClientBuilder);
-                }
+                builder.httpClientBuilder(pickHttpClientBuilder(options, timeout));
                 imageModel = builder.build();
                 break;
             case AIMODEL_TYPE_ZHIPU:
@@ -938,5 +901,66 @@ public class AiModelFactory {
         } catch (NumberFormatException e) {
             return (defval);
         }
+    }
+
+    /**
+     * 按 {@code options.izHttpVersionOne} 选择 HTTP 客户端 Builder：
+     * <ul>
+     *   <li>{@code true}（老配置兼容）：JDK HttpClient 强制 HTTP/1.1</li>
+     *   <li>{@code null} 或 {@code false}（默认）：OkHttp + HTTP/2 PING 心跳,自动剔除闲置死连接</li>
+     * </ul>
+     *
+     * @param options        模型选项
+     * @param timeoutSeconds connect / read 超时秒数
+     * @return 配置好的 HttpClientBuilder
+     * @author sjlei
+     * @date 2026-05-19
+     */
+    private static HttpClientBuilder pickHttpClientBuilder(AiModelOptions options, int timeoutSeconds) {
+        //Http是否为1.1版本
+        if (null != options.izHttpVersionOne && options.izHttpVersionOne) {
+            return buildJdkHttp1ClientBuilder();
+        }
+        return buildOkHttpClientBuilder(timeoutSeconds);
+    }
+
+    /**
+     * 构造强制 HTTP/1.1 的 JDK HttpClient Builder（langchain4j 适配器）,用于 izHttpVersionOne=true 老配置兼容。
+     *
+     * @return 配置好的 JdkHttpClientBuilder
+     * @author sjlei
+     * @date 2026-05-19
+     */
+    private static JdkHttpClientBuilder buildJdkHttp1ClientBuilder() {
+        HttpClient.Builder httpClientBuilder = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1);
+        return JdkHttpClient.builder()
+                .httpClientBuilder(httpClientBuilder);
+    }
+
+    /**
+     * 构造统一配置的 OkHttp HTTP 客户端 Builder（langchain4j 适配器）,供所有 LLM provider 共用。
+     * <p>
+     * 启用：
+     * <ul>
+     *   <li>{@code pingInterval(30s)}：HTTP/2 PING 帧心跳,服务端 idle timeout RST 死连接可在客户端复用前被剔除</li>
+     *   <li>{@code retryOnConnectionFailure(true)}：OkHttp 对 idempotent 请求自动重试一次</li>
+     *   <li>{@code connectionPool(5, 2 min)}：连接池 idle 上限 2 分钟,比主流网关 idle timeout (60-300s) 短</li>
+     * </ul>
+     *
+     * @param timeoutSeconds connect / read 超时秒数,沿用调用方的 timeout 入参
+     * @return 配置好的 OkHttpClientBuilder,可直接传入 langchain4j 模型的 httpClientBuilder()
+     * @author sjlei
+     * @date 2026-05-19
+     */
+    private static OkHttpClientBuilder buildOkHttpClientBuilder(int timeoutSeconds) {
+        OkHttpClient.Builder okBuilder = new OkHttpClient.Builder()
+                .pingInterval(Duration.ofSeconds(30))
+                .retryOnConnectionFailure(true)
+                .connectionPool(new ConnectionPool(5, 2, TimeUnit.MINUTES));
+        return new OkHttpClientBuilder()
+                .okHttpClientBuilder(okBuilder)
+                .connectTimeout(Duration.ofSeconds(timeoutSeconds))
+                .readTimeout(Duration.ofSeconds(timeoutSeconds));
     }
 }

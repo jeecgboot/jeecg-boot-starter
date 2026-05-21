@@ -153,3 +153,7 @@ jeecg-boot-starter-ai/src/main/java/org/jeecg/ai/factory/AiModelOptions.java
 jeecg-boot-starter-ai/src/main/java/org/jeecg/ai/handler/AIParams.java
 说明：DeepSeek 推理模型(如 deepseek-reasoner/deepseek-v4-flash)在多轮工具调用中要求历史 AI 消息携带 reasoning_content，否则 DeepSeek 返回 "The reasoning_content in the thinking mode must be passed back to the API."。修复：1) AIParams/AiModelOptions 新增 sendThinking 字段(透传 langchain4j 的 sendThinking 开关)；2) AiModelFactory 的 DEEPSEEK 分支(blocking 与 streaming 双向)在 sendThinking 非空时调用 dsBuilder.sendThinking(...)，starter 层不做模型类型判断、仅做参数透传；3) 是否启用由调用方按模型名决定(见 airag 模块 AIChatHandler/LLMConsts)。这样不会影响 deepseek-chat 等非推理模型。
 -- author:scott---date:20260429--for:【issues/9585】DeepSeek大模型切换为新发布deepseek-v4-flash，流程中调用出现异常 ---
+
+-- author:sjlei---date:20260520--for: 【issues/9577】底层api请求框架修改为okhttp，解决长时间闲置后的ConnectionReset问题 ---
+jeecg-boot-starter-ai/src/main/java/org/jeecg/ai/factory/AiModelFactory.java
+-- author:sjlei---date:20260520--for: 【issues/9577】底层api请求框架修改为okhttp，解决长时间闲置后的ConnectionReset问题 ---
