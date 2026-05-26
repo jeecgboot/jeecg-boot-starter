@@ -59,6 +59,40 @@ public class AiModelFactory {
     public static final String AIMODEL_TYPE_LMSTDIO = "LMSTDIO";
     public static final String AIMODEL_TYPE_GOOGLE = "GOOGLE";
 
+    //update-begin---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
+    /**
+     * 自 Qwen3.5 起，plus/flash 主线把文本与视觉合并为同一 backbone(原生多模态)，
+     * 但模型名里不再带 -vl-/-omni- 等关键字，langchain4j 识别不出。
+     * 经阿里云官方文档(qwen-api-via-dashscope)确认：qwen3.6-plus 等走 multimodal-generation，
+     * 而老的 qwen-plus仍是纯文本，故必须要求 qwen3.&lt;数字&gt;- 前缀以避免误伤。
+     * 匹配 qwen3.5+ 各代(3.5~3.9 及 3.10+ 两位以上小版本)的 plus/flash，含带日期/版本后缀的变体。
+     */
+    private static final java.util.regex.Pattern QWEN_NATIVE_MULTIMODAL_PATTERN =
+            java.util.regex.Pattern.compile("^qwen3\\.([5-9]|\\d{2,})-(plus|flash)(-.*)?$");
+
+    /**
+     * 判断指定 Qwen 模型是否需要走多模态 endpoint。
+     * 规则：
+     * 1. 模型名包含 -vl-/-audio-/-omni-/-image- 关键字(与 langchain4j QwenHelper.isMultimodalModelName 保持一致)；
+     * 2. 或命中 {@link #QWEN_NATIVE_MULTIMODAL_PATTERN}(qwen3.5+ 起的 plus/flash 原生多模态主线)；
+     *
+     * @param modelName 模型名
+     * @return true=需要走多模态 endpoint
+     */
+    public static boolean isQwenMultimodalModel(String modelName) {
+        if (isEmpty(modelName)) {
+            return false;
+        }
+        String name = modelName.toString().toLowerCase();
+        if (name.contains("-vl-") || name.contains("-audio-") || name.contains("-omni-") || name.contains("-image-")) {
+            return true;
+        }
+        if (QWEN_NATIVE_MULTIMODAL_PATTERN.matcher(name).matches()) {
+            return true;
+        }
+        return false;
+    }
+    //update-end---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
 
     /**
      * model缓存
@@ -90,9 +124,13 @@ public class AiModelFactory {
             //update-begin---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
             if (AIMODEL_TYPE_QWEN.equalsIgnoreCase(options.getProvider())) {
                 Map<String, Object> ep = options.getExtraParams();
-                if (ep != null && Boolean.TRUE.equals(ep.get("incremental_output"))) {
+                //update-begin---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
+                boolean epIncremental = ep != null && Boolean.TRUE.equals(ep.get("incremental_output"));
+                // 多模态模型(含强制多模态,如qwen3.5-plus)非流式调用要求 incremental_output=true,否则 DashScope 报错
+                if (epIncremental || isQwenMultimodalModel(options.getModelName())) {
                     setQwenIncrementalOutput((QwenChatModel) cachedModel);
                 }
+                //update-end---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
             }
             //update-end---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
             return (ChatModel) cachedModel;
@@ -185,7 +223,10 @@ public class AiModelFactory {
                 modelName = getString(modelName, QwenModelName.QWEN_PLUS);
                 //update-begin---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
                 boolean hasImageUrl = options.getExtraParams() != null && options.getExtraParams().containsKey("image_url");
-                boolean isMultiModal = modelName.contains("vl-") || modelName.contains("audio-") || modelName.contains("omni-") || hasImageUrl;
+                //update-begin---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
+                // 多模态判定收敛到 isQwenMultimodalModel(含强制多模态名单),无需用户再手动配置 image_url
+                boolean isMultiModal = isQwenMultimodalModel(modelName) || hasImageUrl;
+                //update-end---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
                 //update-end---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
                 boolean enableSearch = getBool(options.getEnableSearch(), false);
                 QwenChatModel.QwenChatModelBuilder qwenBuilder = QwenChatModel.builder()
@@ -208,14 +249,20 @@ public class AiModelFactory {
                 Map<String, Object> extraParams = options.getExtraParams();
                 // 先读取 incremental_output（在 buildQwenRequestParameters 之前，因为它内部会 remove 掉这个 key）
                 Boolean incrementalOutput = extraParams != null ? (Boolean) extraParams.get("incremental_output") : null;
-                if (null != extraParams && !extraParams.isEmpty()) {
-                    qwenBuilder.defaultRequestParameters(buildQwenRequestParameters(extraParams));
+                //update-begin---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
+                // 多模态模型即使没有 extraParams,也要构造请求参数以标记 isMultimodalModel,使底层改走多模态 endpoint
+                if ((null != extraParams && !extraParams.isEmpty()) || isMultiModal) {
+                    qwenBuilder.defaultRequestParameters(buildQwenRequestParameters(extraParams, isMultiModal));
                 }
+                //update-end---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
                 chatModel = qwenBuilder.build();
                 //update-begin---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
-                if (Boolean.TRUE.equals(incrementalOutput)) {
+                //update-begin---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
+                // 多模态模型(含强制多模态)非流式调用要求 incremental_output=true
+                if (Boolean.TRUE.equals(incrementalOutput) || isMultiModal) {
                     setQwenIncrementalOutput((QwenChatModel) chatModel);
                 }
+                //update-end---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
                 //update-end---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
                 break;
             case AIMODEL_TYPE_OLLAMA:
@@ -397,7 +444,9 @@ public class AiModelFactory {
                 assertNotEmpty("apiKey不能为空", apiKey);
                 modelName = getString(modelName, QwenModelName.QWEN_PLUS);
                 boolean hasImageUrlStream = options.getExtraParams() != null && options.getExtraParams().containsKey("image_url");
-                boolean isMultiModalStream = modelName.contains("-vl-") || modelName.contains("-audio-") || modelName.contains("-omni-") || hasImageUrlStream;
+                //update-begin---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
+                boolean isMultiModalStream = isQwenMultimodalModel(modelName) || hasImageUrlStream;
+                //update-end---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
                 Boolean enableSearch = getBool(options.getEnableSearch(), false);
                 QwenStreamingChatModel.QwenStreamingChatModelBuilder qwenBuilder = QwenStreamingChatModel.builder()
                         .apiKey(apiKey)
@@ -418,9 +467,12 @@ public class AiModelFactory {
                     qwenBuilder.maxTokens(maxTokens);
                 }
                 Map<String, Object> extraParams = options.getExtraParams();
-                if (null != extraParams && !extraParams.isEmpty()) {
-                    qwenBuilder.defaultRequestParameters(buildQwenRequestParameters(extraParams));
+                //update-begin---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
+                // 多模态模型即使没有 extraParams,也要构造请求参数以标记 isMultimodalModel,使底层改走多模态 endpoint
+                if ((null != extraParams && !extraParams.isEmpty()) || isMultiModalStream) {
+                    qwenBuilder.defaultRequestParameters(buildQwenRequestParameters(extraParams, isMultiModalStream));
                 }
+                //update-end---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
                 chatModel = qwenBuilder.build();
                 break;
             case AIMODEL_TYPE_OLLAMA:
@@ -738,7 +790,7 @@ public class AiModelFactory {
      * @param extraParams 自定义参数
      * @return QwenChatRequestParameters
      */
-    private static QwenChatRequestParameters buildQwenRequestParameters(Map<String, Object> extraParams) {
+    private static QwenChatRequestParameters buildQwenRequestParameters(Map<String, Object> extraParams, boolean forceMultimodal) {
         if (extraParams == null) {
             extraParams = new LinkedHashMap<>();
         }
@@ -750,15 +802,17 @@ public class AiModelFactory {
             builder.enableThinking(enableThinking);
         }
         //update-begin---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
-        // extraParams中包含image_url时，标记为多模态模型，使langchain4j走多模态路径
-        if (extraParams.containsKey("image_url")) {
+        //update-begin---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
+        // forceMultimodal=true(命中多模态模型名单)或 extraParams 含 image_url 时，标记为多模态模型，使langchain4j走多模态endpoint
+        if (forceMultimodal || extraParams.containsKey("image_url")) {
             builder.isMultimodalModel(true);
         }
-        // 多模态模型（如qwen3.5-plus）要求incremental_output=true，否则API会报错
+        // 多模态模型（如qwen3.5-plus）要求incremental_output=true，否则API会报错；命中多模态时默认开启
         Boolean incrementalOutput = removeBool(extraParams, "incremental_output");
-        if (Boolean.TRUE.equals(incrementalOutput)) {
+        if (Boolean.TRUE.equals(incrementalOutput) || forceMultimodal) {
             builder.supportIncrementalOutput(true);
         }
+        //update-end---author:wangshuai---date:2026-05-26---for:【issues/9446】qwen3.5-plus等多模态模型自动走多模态endpoint---
         //update-end---author:wangshuai---date:2026-03-30---for:【issues/9446】接入qwen3.5-plus出现问题---
         return builder.build();
     }
