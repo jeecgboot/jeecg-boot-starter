@@ -59,6 +59,15 @@ public class AiModelFactory {
     public static final String AIMODEL_TYPE_LMSTDIO = "LMSTDIO";
     public static final String AIMODEL_TYPE_GOOGLE = "GOOGLE";
 
+    static {
+        // ZhipuAI 等 community 模型的 builder 不支持显式传入 httpClientBuilder，走 SPI 自动发现。
+        // 当 langchain4j-http-client-jdk 和 langchain4j-http-client-okhttp 同时在 classpath 时会冲突，
+        // 通过系统属性指定优先使用 OkHttp（显式传入 httpClientBuilder 的模型不受此属性影响）。
+        if (System.getProperty("langchain4j.http.clientBuilderFactory") == null) {
+            System.setProperty("langchain4j.http.clientBuilderFactory",
+                    "dev.langchain4j.http.client.okhttp.OkHttpClientBuilderFactory");
+        }
+    }
 
     /**
      * model缓存
