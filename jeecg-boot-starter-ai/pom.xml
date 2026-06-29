@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jeecg-boot-starter-ai</artifactId>
     <name>jeecg-boot-starter-ai</name>
-    <version>3.9.2.3</version>
+    <version>3.9.2.5</version>
 
     <properties>
         <langchain4j.version>1.12.2</langchain4j.version>
