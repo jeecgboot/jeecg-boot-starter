@@ -157,3 +157,7 @@ jeecg-boot-starter-ai/src/main/java/org/jeecg/ai/handler/AIParams.java
 -- author:sjlei---date:20260520--for: 【issues/9577】底层api请求框架修改为okhttp，解决长时间闲置后的ConnectionReset问题 ---
 jeecg-boot-starter-ai/src/main/java/org/jeecg/ai/factory/AiModelFactory.java
 -- author:sjlei---date:20260520--for: 【issues/9577】底层api请求框架修改为okhttp，解决长时间闲置后的ConnectionReset问题 ---
+
+-- author:wangshuai---date:20260629--for: 【issues/9728】千帆大模型接入不了：千帆v2版本兼容OpenAI接口，无secretKey时走OpenAI通道，vi版本已经不能新建了 ---
+jeecg-boot-starter-ai/src/main/java/org/jeecg/ai/factory/AiModelFactory.java
+-- author:wangshuai---date:20260629--for: 【issues/9728】千帆大模型接入不了：千帆v2版本兼容OpenAI接口，无secretKey时走OpenAI通道，vi版本已经不能新建了 ---
