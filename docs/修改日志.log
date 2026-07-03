@@ -161,3 +161,8 @@ jeecg-boot-starter-ai/src/main/java/org/jeecg/ai/factory/AiModelFactory.java
 -- author:wangshuai---date:20260629--for: 【issues/9728】千帆大模型接入不了：千帆v2版本兼容OpenAI接口，无secretKey时走OpenAI通道，vi版本已经不能新建了 ---
 jeecg-boot-starter-ai/src/main/java/org/jeecg/ai/factory/AiModelFactory.java
 -- author:wangshuai---date:20260629--for: 【issues/9728】千帆大模型接入不了：千帆v2版本兼容OpenAI接口，无secretKey时走OpenAI通道，vi版本已经不能新建了 ---
+
+-- author:sjlei---date:20260703--for: spring-data-mongodb 自 4.5 版本以后，需要修改 BigDecimal 转 Decimal128 的方式 ---
+jeecg-boot-starter-mongon/src/main/java/org/jeecg/config/mongodb/MongoConvertConfig.java
+jeecg-boot-starter-mongon/src/main/java/org/jeecg/config/mongodb/converter/igDecimalToDecimal128Converter.java (-)
+-- author:sjlei---date:20260703--for: spring-data-mongodb 自 4.5 版本以后，需要修改 BigDecimal 转 Decimal128 的方式 ---
