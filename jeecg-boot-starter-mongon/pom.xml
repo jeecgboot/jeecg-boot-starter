@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jeecg-boot-starter-mongon</artifactId>
     <name>jeecg-boot-starter-mongon</name>
-
+    <version>3.9.2.1</version>
 
     <dependencies>
         <!-- MongoDB集成 -->
