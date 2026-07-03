@@ -1,6 +1,5 @@
 package org.jeecg.config.mongodb;
 
-import org.jeecg.config.mongodb.converter.BigDecimalToDecimal128Converter;
 import org.jeecg.config.mongodb.converter.Decimal128ToBigDecimalConverter;
 import org.jeecg.config.mongodb.converter.timeStamp.DateToTimeStamp;
 import org.jeecg.config.mongodb.converter.timeStamp.LocalDateTimeToTimeStampConverter;
@@ -8,11 +7,7 @@ import org.jeecg.config.mongodb.converter.timeStamp.TimeStampToDate;
 import org.jeecg.config.mongodb.converter.timeStamp.TimeStampToLocalDateTimeConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Configuration
 public class MongoConvertConfig {
@@ -25,23 +20,23 @@ public class MongoConvertConfig {
      */
     @Bean
     public MongoCustomConversions mongoCustomConversions() {
-        List<Converter<?, ?>> converterList = new ArrayList<>();
-        converterList.add(new BigDecimalToDecimal128Converter());
-        converterList.add(new Decimal128ToBigDecimalConverter());
+        return MongoCustomConversions.create(config -> {
+            config.registerConverter(new Decimal128ToBigDecimalConverter());
+            // java --> mongo  即 BigDecimal 变为 Decimal128 的转换器
+            config.bigDecimal(MongoCustomConversions.BigDecimalRepresentation.DECIMAL128);
 
         //日期方案——字符串格式互转方案
 //        converterList.add(new DateToString());
 //        converterList.add(new StringToDate());
 
-        //日期方案——时间戳格式互转方案
-        converterList.add(new DateToTimeStamp());
-        converterList.add(new TimeStampToDate());
-        
-        //日期方案——时间戳格式互转方案
-        converterList.add(new LocalDateTimeToTimeStampConverter());
-        converterList.add(new TimeStampToLocalDateTimeConverter());
+            //日期方案——时间戳格式互转方案
+            config.registerConverter(new DateToTimeStamp());
+            config.registerConverter(new TimeStampToDate());
 
-        return new MongoCustomConversions(converterList);
+            //日期方案——时间戳格式互转方案
+            config.registerConverter(new LocalDateTimeToTimeStampConverter());
+            config.registerConverter(new TimeStampToLocalDateTimeConverter());
+        });
     }
 
 }
