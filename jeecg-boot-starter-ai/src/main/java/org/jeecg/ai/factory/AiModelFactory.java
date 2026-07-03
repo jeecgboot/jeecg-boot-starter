@@ -170,24 +170,27 @@ public class AiModelFactory {
                 break;
             case AIMODEL_TYPE_QIANFAN:
                 assertNotEmpty("apiKey不能为空", apiKey);
-                assertNotEmpty("secretKey不能为空", secretKey);
-                modelName = getString(modelName, QianfanChatModelNameEnum.YI_34B_CHAT.getModelName());
-                QianfanChatModel.QianfanChatModelBuilder qianfanBuilder = QianfanChatModel.builder()
-                        .apiKey(apiKey)
-                        .baseUrl(baseUrl)
-                        .secretKey(secretKey)
-                        .modelName(modelName)
-                        // 温度 0-1 step 0.1
-                        .temperature(temperature)
-                        // 多样性  0-1 step 0.1
-                        .topP(topP)
-                        // 惩罚分数
-                        .penaltyScore(repetitionPenalty)
-                        .maxRetries(0);
-                if (null != maxTokens) {
-                    qianfanBuilder.maxOutputTokens(maxTokens);
+                //update-begin---author:wangshuai---date:2026-06-29---for:【issues/9728】千帆大模型接入不了：千帆兼容OpenAI接口，无secretKey时走OpenAI通道-----------
+                if (StringUtils.isNotEmpty(secretKey)) {
+                    modelName = getString(modelName, QianfanChatModelNameEnum.YI_34B_CHAT.getModelName());
+                    QianfanChatModel.QianfanChatModelBuilder qianfanBuilder = QianfanChatModel.builder()
+                            .apiKey(apiKey)
+                            .baseUrl(baseUrl)
+                            .secretKey(secretKey)
+                            .modelName(modelName)
+                            .temperature(temperature)
+                            .topP(topP)
+                            .penaltyScore(repetitionPenalty)
+                            .maxRetries(0);
+                    if (null != maxTokens) {
+                        qianfanBuilder.maxOutputTokens(maxTokens);
+                    }
+                    chatModel = qianfanBuilder.build();
+                } else {
+                    chatModel = buildOpenAiChatModel(apiKey, baseUrl, modelName, temperature, topP,
+                            presencePenalty, frequencyPenalty, timeout, maxTokens, options);
                 }
-                chatModel = qianfanBuilder.build();
+                //update-end---author:wangshuai---date:2026-06-29---for:【issues/9728】千帆大模型接入不了：千帆兼容OpenAI接口，无secretKey时走OpenAI通道-----------
                 break;
             case AIMODEL_TYPE_QWEN:
                 assertNotEmpty("apiKey不能为空", apiKey);
@@ -387,20 +390,23 @@ public class AiModelFactory {
                 break;
             case AIMODEL_TYPE_QIANFAN:
                 assertNotEmpty("apiKey不能为空", apiKey);
-                assertNotEmpty("secretKey不能为空", secretKey);
-                modelName = getString(modelName, QianfanChatModelNameEnum.YI_34B_CHAT.getModelName());
-                chatModel = QianfanStreamingChatModel.builder()
-                        .apiKey(apiKey)
-                        .baseUrl(baseUrl)
-                        .secretKey(secretKey)
-                        .modelName(modelName)
-                        // 温度 0-1 step 0.1
-                        .temperature(temperature)
-                        // 多样性  0-1 step 0.1
-                        .topP(topP)
-                        // 惩罚分数
-                        .penaltyScore(repetitionPenalty)
-                        .build();
+                //update-begin---author:wangshuai---date:2026-06-29---for:【issues/9728】千帆大模型接入不了：千帆兼容OpenAI接口，无secretKey时走OpenAI通道-----------
+                if (StringUtils.isNotEmpty(secretKey)) {
+                    modelName = getString(modelName, QianfanChatModelNameEnum.YI_34B_CHAT.getModelName());
+                    QianfanStreamingChatModel.QianfanStreamingChatModelBuilder qianfanStreamBuilder = QianfanStreamingChatModel.builder()
+                            .apiKey(apiKey)
+                            .baseUrl(baseUrl)
+                            .secretKey(secretKey)
+                            .modelName(modelName)
+                            .temperature(temperature)
+                            .topP(topP)
+                            .penaltyScore(repetitionPenalty);
+                    chatModel = qianfanStreamBuilder.build();
+                } else {
+                    chatModel = buildOpenAiStreamingChatModel(apiKey, baseUrl, modelName, temperature, topP,
+                            presencePenalty, frequencyPenalty, timeout, maxTokens, options);
+                }
+                //update-end---author:wangshuai---date:2026-06-29---for:【issues/9728】千帆大模型接入不了：千帆兼容OpenAI接口，无secretKey时走OpenAI通道-----------
                 break;
             case AIMODEL_TYPE_QWEN:
                 assertNotEmpty("apiKey不能为空", apiKey);
@@ -571,15 +577,20 @@ public class AiModelFactory {
                 break;
             case AIMODEL_TYPE_QIANFAN:
                 assertNotEmpty("apiKey不能为空", apiKey);
-                assertNotEmpty("secretKey不能为空", secretKey);
-                modelName = getString(modelName, QianfanEmbeddingModelNameEnum.EMBEDDING_V1.getModelName());
-                embeddingModel = QianfanEmbeddingModel.builder()
-                        .apiKey(apiKey)
-                        .baseUrl(baseUrl)
-                        .secretKey(secretKey)
-                        .modelName(modelName)
-                        .maxRetries(0)
-                        .build();
+                //update-begin---author:wangshuai---date:2026-06-29---for:【issues/9728】千帆大模型接入不了：千帆兼容OpenAI接口，无secretKey时走OpenAI通道-----------
+                if (StringUtils.isNotEmpty(secretKey)) {
+                    modelName = getString(modelName, QianfanEmbeddingModelNameEnum.EMBEDDING_V1.getModelName());
+                    QianfanEmbeddingModel.QianfanEmbeddingModelBuilder qianfanEmbedBuilder = QianfanEmbeddingModel.builder()
+                            .apiKey(apiKey)
+                            .baseUrl(baseUrl)
+                            .secretKey(secretKey)
+                            .modelName(modelName)
+                            .maxRetries(0);
+                    embeddingModel = qianfanEmbedBuilder.build();
+                } else {
+                    embeddingModel = buildOpenAiEmbeddingModel(apiKey, baseUrl, modelName, timeout, options);
+                }
+                //update-end---author:wangshuai---date:2026-06-29---for:【issues/9728】千帆大模型接入不了：千帆兼容OpenAI接口，无secretKey时走OpenAI通道-----------
                 break;
             case AIMODEL_TYPE_QWEN:
                 assertNotEmpty("apiKey不能为空", apiKey);
@@ -820,6 +831,67 @@ public class AiModelFactory {
             customParametersSetter.accept(copy);
         }
     }
+
+    //update-begin---author:wangshuai---date:2026-06-29---for:【issues/9728】千帆大模型接入不了：千帆兼容OpenAI接口，抽取OpenAI兼容模型构建公共方法-----------
+    private static ChatModel buildOpenAiChatModel(String apiKey, String baseUrl, String modelName,
+                                                   double temperature, double topP, double presencePenalty,
+                                                   double frequencyPenalty, int timeout, Integer maxTokens,
+                                                   AiModelOptions options) {
+        baseUrl = ensureOpenAiUrlEnd(baseUrl);
+        modelName = getString(modelName, OpenAiChatModelName.GPT_3_5_TURBO.toString());
+        OpenAiChatModel.OpenAiChatModelBuilder builder = OpenAiChatModel.builder()
+                .apiKey(apiKey)
+                .baseUrl(baseUrl)
+                .modelName(modelName)
+                .temperature(temperature)
+                .topP(topP)
+                .presencePenalty(presencePenalty)
+                .frequencyPenalty(frequencyPenalty)
+                .timeout(Duration.ofSeconds(timeout))
+                .maxRetries(0);
+        if (null != maxTokens) {
+            builder.maxTokens(maxTokens);
+        }
+        builder.httpClientBuilder(pickHttpClientBuilder(options, timeout));
+        return builder.build();
+    }
+
+    private static StreamingChatModel buildOpenAiStreamingChatModel(String apiKey, String baseUrl, String modelName,
+                                                                     double temperature, double topP, double presencePenalty,
+                                                                     double frequencyPenalty, int timeout, Integer maxTokens,
+                                                                     AiModelOptions options) {
+        baseUrl = ensureOpenAiUrlEnd(baseUrl);
+        modelName = getString(modelName, OpenAiChatModelName.GPT_3_5_TURBO.toString());
+        OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder builder = OpenAiStreamingChatModel.builder()
+                .apiKey(apiKey)
+                .baseUrl(baseUrl)
+                .modelName(modelName)
+                .temperature(temperature)
+                .topP(topP)
+                .presencePenalty(presencePenalty)
+                .frequencyPenalty(frequencyPenalty)
+                .timeout(Duration.ofSeconds(timeout));
+        if (null != maxTokens) {
+            builder.maxTokens(maxTokens);
+        }
+        builder.httpClientBuilder(pickHttpClientBuilder(options, timeout));
+        return builder.build();
+    }
+
+    private static EmbeddingModel buildOpenAiEmbeddingModel(String apiKey, String baseUrl, String modelName,
+                                                             int timeout, AiModelOptions options) {
+        baseUrl = ensureOpenAiUrlEnd(baseUrl);
+        modelName = getString(modelName, OpenAiEmbeddingModelName.TEXT_EMBEDDING_ADA_002.toString());
+        OpenAiEmbeddingModel.OpenAiEmbeddingModelBuilder builder = OpenAiEmbeddingModel.builder()
+                .apiKey(apiKey)
+                .baseUrl(baseUrl)
+                .modelName(modelName)
+                .timeout(Duration.ofSeconds(timeout))
+                .maxRetries(0);
+        builder.httpClientBuilder(pickHttpClientBuilder(options, timeout));
+        return builder.build();
+    }
+    //update-end---author:wangshuai---date:2026-06-29---for:【issues/9728】千帆大模型接入不了：千帆兼容OpenAI接口，抽取OpenAI兼容模型构建公共方法-----------
 
     /**
      * 确保openai的url以v1结尾
