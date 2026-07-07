@@ -5,9 +5,9 @@
     <parent>
         <artifactId>jeecg-boot-starter</artifactId>
         <groupId>org.jeecgframework.boot3</groupId>
-        <version>3.9.2</version>
+        <version>3.9.3</version>
     </parent>
-    <version>3.9.2</version>
+    <version>3.9.3</version>
     
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jeecg-boot-starter-shardingsphere</artifactId>

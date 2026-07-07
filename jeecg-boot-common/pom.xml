@@ -4,13 +4,13 @@
     <parent>
         <artifactId>jeecg-boot-starter</artifactId>
         <groupId>org.jeecgframework.boot3</groupId>
-        <version>3.9.2</version>
+        <version>3.9.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <description>公共模块</description>
     <artifactId>jeecg-boot-common</artifactId>
     <name>jeecg-boot-common</name>
-    <version>3.9.2</version>
+    <version>3.9.3</version>
 
     <dependencies>
         <!--集成springmvc框架 -->

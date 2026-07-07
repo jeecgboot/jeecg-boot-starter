@@ -5,12 +5,12 @@
     <parent>
         <artifactId>jeecg-boot-starter</artifactId>
         <groupId>org.jeecgframework.boot3</groupId>
-        <version>3.9.2</version>
+        <version>3.9.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jeecg-boot-starter-ai</artifactId>
     <name>jeecg-boot-starter-ai</name>
-    <version>3.9.2.6</version>
+    <version>3.9.3</version>
 
     <properties>
         <langchain4j.version>1.12.2</langchain4j.version>
