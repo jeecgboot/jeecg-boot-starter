@@ -65,6 +65,7 @@
         <module>jeecg-boot-starter-ai</module>
         <!-- 微服务 start -->
         <module>jeecg-boot-starter-cloud</module>
+        <module>jeecg-boot-starter-sentinel</module>
         <module>jeecg-boot-starter-seata</module>
         <!-- 微服务 end -->
     </modules>

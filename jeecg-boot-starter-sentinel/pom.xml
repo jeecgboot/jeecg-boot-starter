@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>jeecg-boot-starter</artifactId>
+		<groupId>org.jeecgframework.boot3</groupId>
+		<version>3.9.3</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>jeecg-boot-starter-sentinel</artifactId>
+	<name>jeecg-boot-starter-sentinel</name>
+	<description>Sentinel 公共库——限流降级、Feign 集成、自动配置</description>
+
+	<dependencies>
+		<!-- 底层共通依赖（SentinelErrorInfoEnum 等） -->
+		<dependency>
+			<groupId>org.jeecgframework.boot3</groupId>
+			<artifactId>jeecg-boot-common</artifactId>
+		</dependency>
+		<!-- Servlet API -->
+		<dependency>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
+		</dependency>
+		<!-- Sentinel 核心 + Feign 集成 -->
+		<dependency>
+			<groupId>com.alibaba.cloud</groupId>
+			<artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>fastjson</artifactId>
+					<groupId>com.alibaba</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- OpenFeign -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
+		</dependency>
+		<!-- Sentinel Nacos 持久化 -->
+		<dependency>
+			<groupId>com.alibaba.csp</groupId>
+			<artifactId>sentinel-datasource-nacos</artifactId>
+		</dependency>
+		<!-- Lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+</project>
