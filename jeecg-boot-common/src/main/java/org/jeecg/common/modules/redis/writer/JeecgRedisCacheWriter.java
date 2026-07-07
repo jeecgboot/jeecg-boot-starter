@@ -111,7 +111,7 @@ public class JeecgRedisCacheWriter implements RedisCacheWriter {
     }
 
     @Override
-    public void remove(String name, byte[] key) {
+    public void evict(String name, byte[] key) {
         Assert.notNull(name, "Name must not be null!");
         Assert.notNull(key, "Key must not be null!");
         String keyString = new String(key);
@@ -142,7 +142,7 @@ public class JeecgRedisCacheWriter implements RedisCacheWriter {
     }
 
     @Override
-    public void clean(String name, byte[] pattern) {
+    public void clear(String name, byte[] pattern) {
         Assert.notNull(name, "Name must not be null!");
         Assert.notNull(pattern, "Pattern must not be null!");
         this.execute(name, (connection) -> {

@@ -1,10 +1,17 @@
 package org.jeecg.common.modules.redis.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.cache.annotation.CachingConfigurerSupport;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import tools.jackson.core.json.JsonReadFeature;
+import tools.jackson.core.json.JsonWriteFeature;
+import tools.jackson.databind.DefaultTyping;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.jeecg.common.constant.CacheConstant;
@@ -12,18 +19,20 @@ import org.jeecg.common.constant.GlobalConstants;
 import org.jeecg.common.modules.redis.receiver.RedisReceiver;
 import org.jeecg.common.modules.redis.writer.JeecgRedisCacheWriter;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.*;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.*;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
+
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -47,7 +56,8 @@ public class RedisConfig extends CachingConfigurerSupport {
 	private JeecgRedisCacheTtls redisCacheProperties;
 
 	// 缓存Jackson序列化器实例，避免重复创建
-	private static volatile Jackson2JsonRedisSerializer<Object> cachedJacksonSerializer;
+	private static volatile RedisSerializer<Object> cachedJacksonSerializer;
+
 
 	/**
 	 * RedisTemplate配置
@@ -58,7 +68,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 	public RedisTemplate<String, Object> redisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
 		long startTime = System.currentTimeMillis();
 		
-        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = getJacksonSerializer();
+        RedisSerializer<Object> jackson2JsonRedisSerializer = getJacksonSerializer();
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(lettuceConnectionFactory);
 		RedisSerializer<String> stringSerializer = new StringRedisSerializer();
@@ -86,7 +96,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 	 */
 	@Bean
 	public CacheManager cacheManager(LettuceConnectionFactory factory) {
-        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = getJacksonSerializer();
+        RedisSerializer<Object> jackson2JsonRedisSerializer = getJacksonSerializer();
         // 配置序列化（解决乱码的问题）,并且配置缓存默认有效期 6小时
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(6));
         RedisCacheConfiguration redisCacheConfiguration = config.serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
@@ -128,7 +138,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 
 
 		public RedisConfigCacheManager(RedisCacheWriter cacheWriter, RedisCacheConfiguration defaultCacheConfiguration, Map<String, RedisCacheConfiguration> initialCaches) {
-			super(cacheWriter, defaultCacheConfiguration, initialCaches, true);
+			super(cacheWriter, defaultCacheConfiguration, initialCaches);
 		}
 
 		private static final RedisSerializationContext.SerializationPair<Object> DEFAULT_PAIR = RedisSerializationContext.SerializationPair
@@ -199,7 +209,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 	/**
 	 * 获取Jackson序列化器（单例模式，线程安全）
 	 */
-	private static Jackson2JsonRedisSerializer<Object> getJacksonSerializer() {
+	private static RedisSerializer<Object> getJacksonSerializer() {
 		if (cachedJacksonSerializer == null) {
 			synchronized (RedisConfig.class) {
 				if (cachedJacksonSerializer == null) {
@@ -210,16 +220,32 @@ public class RedisConfig extends CachingConfigurerSupport {
 		return cachedJacksonSerializer;
 	}
 
-	private static Jackson2JsonRedisSerializer<Object> jacksonSerializer() {
-		Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-		objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-		objectMapper.registerModule(new JavaTimeModule());
-		// 反序列化设置 关闭反序列化时Jackson发现无法找到对应的对象字段，便会抛出UnrecognizedPropertyException
-		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
-		return jackson2JsonRedisSerializer;
+	private static RedisSerializer<Object> jacksonSerializer() {
+		// Jackson 3.x 推荐的多态类型校验器，生产环境中建议限制包或类
+		PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
+				.allowIfBaseType(Object.class) // 放宽限制，实际使用可针对具体包或类限制
+				.build();
+
+		ObjectMapper objectMapper = JsonMapper.builder()
+				// 启用属性字母排序，方便调试和对比
+				.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+				// 启用非ASCII字符转义，保证序列化输出ASCII安全
+				.enable(JsonWriteFeature.ESCAPE_NON_ASCII)
+				// 反序列化设置 关闭反序列化时Jackson发现无法找到对应的对象字段，便会抛出UnrecognizedPropertyException
+				.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+				// 多态类型处理，使用 PROPERTY 格式而不是 WRAPPER_ARRAY
+				// 这样类型信息会作为 @class 属性嵌入到 JSON 对象中
+				.activateDefaultTyping(ptv, DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY)
+				// 设置所有字段（包括private）可见
+				.changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY))
+				// 允许单引号和非标准控制字符，视具体需求启用
+				.enable(JsonReadFeature.ALLOW_SINGLE_QUOTES)
+				.enable(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS)
+				.build();
+		
+		// 注：Jackson 3.x 默认已经包含对 Java 8 日期时间类型的支持，无需额外注册 JavaTimeModule
+		
+		return new JacksonJsonRedisSerializer(objectMapper, Object.class);
 	}
 
 

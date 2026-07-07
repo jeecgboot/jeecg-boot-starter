@@ -18,8 +18,8 @@
         <!-- 动态数据源 -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>dynamic-datasource-spring-boot3-starter</artifactId>
-            <version>${dynamic-datasource-spring-boot-starter.version}</version>
+            <artifactId>dynamic-datasource-spring-boot4-starter</artifactId>
+            <version>4.5.0</version>
         </dependency>
         <!-- 分库分表 -->
         <dependency>
