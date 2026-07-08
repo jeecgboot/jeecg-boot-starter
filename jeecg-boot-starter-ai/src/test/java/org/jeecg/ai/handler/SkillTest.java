@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -54,6 +55,8 @@ public class SkillTest {
     @BeforeAll
     static void setUp() {
         Path skillsPath = Paths.get(SKILLS_DIR);
+        Assumptions.assumeTrue(Files.exists(skillsPath),
+                "跳过测试：Skills 目录不存在 " + SKILLS_DIR);
         loadedSkills = FileSystemSkillLoader.loadSkills(skillsPath);
         log.info("Loaded {} skills from {}", loadedSkills.size(), SKILLS_DIR);
     }

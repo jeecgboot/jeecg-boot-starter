@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -65,6 +66,11 @@ public class SkillShellTest {
 
     @BeforeAll
     static void setUp() {
+        Assumptions.assumeTrue(Files.exists(Paths.get(SKILLS_DIR)),
+                "跳过测试：Skills 目录不存在 " + SKILLS_DIR);
+        Assumptions.assumeTrue(Files.exists(Paths.get(SHELL_SKILLS_DIR)),
+                "跳过测试：Shell Skills 目录不存在 " + SHELL_SKILLS_DIR);
+
         loadedSkills = FileSystemSkillLoader.loadSkills(Paths.get(SKILLS_DIR));
         log.info("Loaded {} skills from {}", loadedSkills.size(), SKILLS_DIR);
 
