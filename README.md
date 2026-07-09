@@ -1,6 +1,6 @@
 # jeecg-boot-starter
 
-当前最新版本： 3.9.3（发布日期：2026-07-07）
+当前最新版本： 3.9.4（发布日期：2026-07-09）
 
 ### 介绍
 > jeecg-boot-starter 是 JeecgBoot 低代码平台的核心启动器模块集合，基于 Spring Boot 4 和 JDK 17 构建。
@@ -93,21 +93,21 @@
 <dependency>
     <groupId>org.jeecgframework.boot3</groupId>
     <artifactId>jeecg-boot-starter-lock</artifactId>
-    <version>3.9.3</version>
+    <version>3.9.4</version>
 </dependency>
 
 <!-- 定时任务 -->
 <dependency>
     <groupId>org.jeecgframework.boot3</groupId>
     <artifactId>jeecg-boot-starter-job</artifactId>
-    <version>3.9.3</version>
+    <version>3.9.4</version>
 </dependency>
 
 <!-- RabbitMQ消息队列 -->
 <dependency>
     <groupId>org.jeecgframework.boot3</groupId>
     <artifactId>jeecg-boot-starter-rabbitmq</artifactId>
-    <version>3.9.3</version>
+    <version>3.9.4</version>
 </dependency>
 
 <!-- 更多模块按需引入... -->
