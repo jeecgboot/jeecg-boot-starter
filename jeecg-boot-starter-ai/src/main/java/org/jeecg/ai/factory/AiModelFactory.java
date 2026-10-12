@@ -149,6 +149,10 @@ public class AiModelFactory {
                     openAIBuilder.maxTokens(maxTokens);
                 }
                 openAIBuilder.httpClientBuilder(pickHttpClientBuilder(options, timeout));
+                //update-begin---author:wangshuai---date:20261012---for：【issues/9884】火山方舟模型使用问题，关闭不了思考模式，响应时间太慢，每个模型好像参数不太一样？-----------
+                // 处理并传递 OpenAI 兼容协议（含火山方舟/Kimi/MiniMax）的额外参数，如 {"thinking":{"type":"disabled"}}
+                applyOpenAiExtraParams(options.getExtraParams(), openAIBuilder::reasoningEffort, openAIBuilder::customParameters);
+                //update-end---author:wangshuai---date:20261012---for：【issues/9884】火山方舟模型使用问题，关闭不了思考模式，响应时间太慢，每个模型好像参数不太一样？-----------
                 chatModel = openAIBuilder.build();
                 break;
             case AIMODEL_TYPE_ZHIPU:
@@ -370,6 +374,10 @@ public class AiModelFactory {
                     openAIBuilder.maxTokens(maxTokens);
                 }
                 openAIBuilder.httpClientBuilder(pickHttpClientBuilder(options, timeout));
+                //update-begin---author:wangshuai---date:20261012---for：【issues/9884】火山方舟模型使用问题，关闭不了思考模式，响应时间太慢，每个模型好像参数不太一样？-----------
+                // 处理并传递 OpenAI 兼容协议（含火山方舟/Kimi/MiniMax）的额外参数，如 {"thinking":{"type":"disabled"}}
+                applyOpenAiExtraParams(options.getExtraParams(), openAIBuilder::reasoningEffort, openAIBuilder::customParameters);
+                //update-end---author:wangshuai---date:20261012---for：【issues/9884】火山方舟模型使用问题，关闭不了思考模式，响应时间太慢，每个模型好像参数不太一样？-----------
                 chatModel = openAIBuilder.build();
                 break;
             case AIMODEL_TYPE_ZHIPU:
@@ -882,6 +890,28 @@ public class AiModelFactory {
             customParametersSetter.accept(copy);
         }
     }
+
+    //update-begin---author:wangshuai---date:20261012---for：【issues/9884】火山方舟模型使用问题，关闭不了思考模式，响应时间太慢，每个模型好像参数不太一样？-----------
+    /**
+     * 将 extraParams 透传到 OpenAI 兼容协议的 builder（火山方舟、Kimi、MiniMax 在后台会被归一成 OPENAI，也走这里）。
+     * 
+     * @param extraParams            额外参数，如 {"thinking":{"type":"disabled"}}
+     * @param reasoningEffortSetter  builder 的 reasoningEffort 方法
+     * @param customParametersSetter builder 的 customParameters 方法
+     */
+    private static void applyOpenAiExtraParams(
+            Map<String, Object> extraParams,
+            Consumer<String> reasoningEffortSetter,
+            Consumer<Map<String, Object>> customParametersSetter
+    ) {
+        if (extraParams == null || extraParams.isEmpty()) {
+            return;
+        }
+        Map<String, Object> copy = new LinkedHashMap<>(extraParams);
+        copy.remove("image_url");
+        applyDeepSeekExtraParams(copy, reasoningEffortSetter, customParametersSetter);
+    }
+    //update-end---author:wangshuai---date:20261012---for：【issues/9884】火山方舟模型使用问题，关闭不了思考模式，响应时间太慢，每个模型好像参数不太一样？-----------
 
     //update-begin---author:wangshuai---date:2026-06-29---for:【issues/9728】千帆大模型接入不了：千帆兼容OpenAI接口，抽取OpenAI兼容模型构建公共方法-----------
     private static ChatModel buildOpenAiChatModel(String apiKey, String baseUrl, String modelName,
