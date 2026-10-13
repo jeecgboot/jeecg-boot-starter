@@ -461,6 +461,9 @@ public class AiModelFactory {
                         // 重复惩罚
                         .repeatPenalty(repetitionPenalty)
                         .timeout(Duration.ofSeconds(timeout))
+                        //update-begin---author:wangshuai---date:20261013---for：【issues/9888】AI 应用调用本地Ollama deepseek1.5模型时总是提示错误，AI助手没问题-----------
+                        .httpClientBuilder(pickHttpClientBuilder(options, timeout))
+                        //update-end---author:wangshuai---date:20261013---for：【issues/9888】AI 应用调用本地Ollama deepseek1.5模型时总是提示错误，AI助手没问题-----------
                         .build();
                 break;
             case AIMODEL_TYPE_DEEPSEEK:
