@@ -7,8 +7,6 @@ import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
 import feign.Feign;
 import feign.Logger;
 import feign.RequestInterceptor;
-import feign.codec.Encoder;
-import feign.form.spring.SpringFormEncoder;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +20,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -157,16 +153,10 @@ public class FeignConfig {
         return Logger.Level.FULL;
     }
 
-    /**
-     * Feign支持文件上传
-     * @return 编码器实例
-     */
-    @Bean
-    @Primary
-    @Scope("prototype")
-    public Encoder multipartFormEncoder() {
-        return new SpringFormEncoder();
-    }
+    // 注意：不要再注册自定义 Encoder（如 @Primary 的 new SpringFormEncoder()）。
+    // 无参 SpringFormEncoder 的 delegate 是 Encoder.Default，只能编码 String/byte[]，会顶替 OpenFeign 默认的 SpringEncoder，
+    // 导致 @RequestBody 传对象的接口报 "is not a type supported by this encoder"。
+    // OpenFeign 默认的 SpringEncoder 已内置 SpringFormEncoder，文件上传（consumes = multipart/form-data）无需额外配置。
 
     // update-begin--Author:sunjianlei Date:20210604 for： 给 Feign 添加 FastJson 的解析支持 ----------
     // 注意：在Spring Boot 4.x中，HttpMessageConverters已被重构
