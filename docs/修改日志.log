@@ -210,3 +210,7 @@ jeecg-boot-starter-ai/src/main/java/org/jeecg/ai/stream/InternalTokenStream.java
 jeecg-boot-starter-ai/src/main/java/org/jeecg/ai/handler/LLMHandler.java
 jeecg-boot-starter-ai/src/test/java/org/jeecg/ai/stream/InternalTokenStreamSanitizeTest.java
 -- author:scott---date:20260810--for: 【issues/9790】修复跨轮历史中assistant残留tool_calls但tool结果不足，导致报"An assistant message with tool_calls must be followed by tool messages" ---
+
+-- author:liusq---date:20261016--for: starter 升级到 Spring Boot 4 后，SpringFormEncoder 从带 SpringEncoder 的构造改成了无参构造，delegate 退化成默认编码器，且被标记为 @Primary，覆盖了 OpenFeign 默认的 JSON 编码器，导致所有用 @RequestBody 传对象的 Feign 调用都会出错 ---
+jeecg-boot-starter-cloud/src/main/java/org/jeecg/config/FeignConfig.java
+-- author:liusq---date:20261016--for: starter 升级到 Spring Boot 4 后，SpringFormEncoder 从带 SpringEncoder 的构造改成了无参构造，delegate 退化成默认编码器，且被标记为 @Primary，覆盖了 OpenFeign 默认的 JSON 编码器，导致所有用 @RequestBody 传对象的 Feign 调用都会出错 ---
